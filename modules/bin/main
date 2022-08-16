@@ -1,0 +1,15 @@
+/* vim: set ft=cpp: */
+
+#include <prelude>
+
+#include <Windows.h>
+
+i32 main(i32 argc, i8* argv[]) 
+{
+	HANDLE stdout_handle = GetStdHandle(STD_OUTPUT_HANDLE);
+	DWORD len;
+
+	WriteConsoleA(stdout_handle, "Hello, world!", 13, &len, NULL);
+
+	return 0;
+}
