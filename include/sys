@@ -1,0 +1,13 @@
+/* vim: set ft=cpp: */
+#pragma once
+
+#include <prelude>
+
+template<typename T>
+auto alloc(usize capacity) -> T*;
+
+template<typename T>
+auto realloc(T* old_ptr, usize old_capacity, usize new_capacity) -> T*;
+
+template<typename T>
+auto dealloc(T* ptr);

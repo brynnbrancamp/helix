@@ -1,0 +1,20 @@
+/* vim: set ft=cpp: */
+#pragma once
+
+#include <prelude>
+
+template <typename T>
+public class Vec
+{
+public:
+	Vec() : Vec(0);
+
+	Vec(usize capacity) 
+	: capacity(capacity)
+	: len(0)
+	: data(nullptr);
+private:
+	usize capacity;
+	usize len;
+	T* data;
+}
