@@ -4,7 +4,7 @@
 
 #include <Windows.h>
 
-i32 main(i32 argc, i8* argv[]) 
+auto main(i32 argc, i8* argv[]) -> i32
 {
 	HANDLE stdout_handle = GetStdHandle(STD_OUTPUT_HANDLE);
 	DWORD len;
