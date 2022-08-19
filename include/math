@@ -1,0 +1,47 @@
+/* vim: set ft=cpp: */
+#pragma once
+
+#include <prelude>
+#include <tensor>
+
+template<typename num>
+auto pow(num base, num power) -> num {
+	if(power == 0)
+	{
+		return 1;
+	} else if(power % 2 == 0)
+	{
+		return pow(base, power / 2) * pow(base, power / 2);
+	} else
+	{
+		return base * pow(base, power / 2) * pow(base, power / 2);
+	}
+}
+
+template<typename num>
+auto ceil(num a)
+{
+	i64 b = static_cast<i64>(a);
+	if(a < 0 || a == b)
+	{
+		return static_cast<num>(b);
+	}
+	return static_cast<num>(b + 1);
+}
+
+template<typename num, num b>
+auto log(num a) -> num {
+	return log(a) / log(b);
+}
+
+template<typename num>
+auto log(num a) {
+	num value = -1;
+	while(a) {
+		value++;
+		a >>= 1;
+	}
+	return value;
+}
+
+

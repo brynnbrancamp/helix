@@ -1,15 +1,11 @@
 /* vim: set ft=cpp: */
 
 #include <prelude>
-
-#include <Windows.h>
+#include <math>
 
 auto main(i32 argc, i8* argv[]) -> i32
 {
-	HANDLE stdout_handle = GetStdHandle(STD_OUTPUT_HANDLE);
-	DWORD len;
-
-	WriteConsoleA(stdout_handle, "Hello, world!", 13, &len, NULL);
-
-	return 0;
+	mat4 matrix;
+	
+	matrix[2][2] = 3;
 }

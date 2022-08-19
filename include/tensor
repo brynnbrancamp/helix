@@ -1,0 +1,82 @@
+/* vim: set ft=cpp: */
+#pragma once
+
+#include <prelude>
+
+template<typename num, usize... order>
+class tensor
+{
+};
+
+template<typename num, usize size, usize... order>
+class tensor<num, size, order...>
+{
+public:
+	tensor() : 
+		data{}
+	{
+		
+	}
+
+	tensor(tensor<num, order...> data[size]) :
+		data(data)
+	{
+	}
+
+	auto operator[](usize index) -> tensor<num, order...>&
+	{
+		if(index >= size)
+		{
+			throw exception::out_of_bounds();
+		}
+
+		return this->data[index];
+	}
+private:
+	tensor<num, order...> data[size];
+};
+
+template<typename num>
+class tensor<num> 
+{
+public:
+	tensor() : data(0)
+	{
+	}
+
+	tensor(num data) :
+		data(data)
+	{
+	}
+
+	operator num()
+	{
+		return this->data;
+	}
+private:
+	num data;
+};
+
+typedef tensor<f32, 2, 2> f32mat2;
+
+typedef tensor<f32, 3, 3> f32mat3;
+
+typedef tensor<f32, 4, 4> f32mat4;
+
+typedef tensor<f32, 2> f32vec2;
+
+typedef tensor<f32, 3> f32vec3;
+
+typedef tensor<f32, 4> f32vec4;
+
+typedef f32mat2 mat2;
+
+typedef f32mat3 mat3;
+
+typedef f32mat4 mat4;
+
+typedef f32vec2 vec2;
+
+typedef f32vec3 vec3;
+
+typedef f32vec4 vec4;

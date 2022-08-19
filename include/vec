@@ -2,19 +2,65 @@
 #pragma once
 
 #include <prelude>
+#include <sys>
+#include <math>
+#include <exception>
 
-template <typename T>
-public class Vec
+template <typename item>
+class vec
 {
 public:
-	Vec() : Vec(0);
+	vec() : vec(0)
+	{
+	}
 
-	Vec(usize capacity) 
-	: capacity(capacity)
-	: len(0)
-	: data(nullptr);
+	vec(usize capacity) : 
+		capacity,
+		len(0),
+		data(nullptr)
+	{
+		if(capacity == 0) 
+		{
+			return;
+		}	
+
+		this->data = alloc<item>(capacity);
+	}
+
+	~vec()
+	{
+		dealloc(this->data);
+	}
+
+	auto push(item element)
+	{
+		if(capacity == 0)
+		{
+			this->data = alloc<item>(1);
+		} else if(capacity <= len + 1) {
+			//might be log(capacity + 1)
+			usize base = 2;
+			usize power = ceil(log<usize, 10>(this->capacity) / log<usize, 10>(2));
+			usize new_capacity = pow(base, power); 
+			this->data = realloc(this->data, this->capacity, new_capacity);
+			this->capacity = new_capacity;
+		}
+
+		this->data[this->len] = element;
+		this->len++;
+	}
+
+	auto operator [](usize index) -> item& 
+	{
+		if(index >= this->len)
+		{
+			throw exception::out_of_bounds();
+		}
+
+		return this->data[index];
+	}
 private:
 	usize capacity;
 	usize len;
-	T* data;
-}
+	item* data;
+};

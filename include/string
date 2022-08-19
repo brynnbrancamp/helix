@@ -1,0 +1,77 @@
+/* vim: set ft=cpp: */
+#pragma once
+
+#include <prelude>
+#include <sys>
+
+template<typename num>
+auto itoa(num i, char b[]) -> i8*
+{
+	i8 const digit[] = "0123456789";
+	i8* p = b;
+
+	if(i < 0)
+	{
+		*p++ = '-';
+		i *= -1;
+	}
+
+	num shifter = i;
+
+	do
+	{
+		++p;
+		shifter /= 10;
+	} while(shifter);
+
+	*p = '\0';
+
+	do
+	{
+		*--p = digit[i % 10];
+		i /= 10;
+	} while(i);
+
+	return b;
+}
+
+class string 
+{
+public:
+	string() : string("")
+	{	
+	}
+
+	string(const i8 data[]) :
+		len(0),
+		data(nullptr)
+	{
+		usize len = 0;
+		while(data[len] != '\0')
+			++len;
+
+		if(len == 0)
+		{
+			return;
+		}
+
+		this->len = len;
+		this->data = alloc<i8>(len);
+
+		memcpy(this->data, data, len);	
+	}
+
+	auto length() -> usize
+	{
+		return this->len;
+	}
+	
+	operator const i8*() const
+	{
+		return this->data;
+	}
+
+	auto operator [](usize index) -> i8&;
+private:
+	vec<i8> data;
+};
