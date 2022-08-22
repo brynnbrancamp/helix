@@ -3,7 +3,7 @@
 
 #include <Windows.h>
 
-const i8* endl = "\n\r";
+const i8* endl = "\r\n";
 
 out_stream out = out_stream(out_sink);
 in_stream in = in_stream(in_source);

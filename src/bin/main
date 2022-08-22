@@ -15,7 +15,7 @@ auto main(i32 argc, i8* argv[]) -> i32
 	f32 f = 420.69;
 
 	//for some reason, have to send endl twice for newline
-	out << "Here is a floating point number: " << f << endl << endl;
+	out << "Here is a floating point number: " << f << endl; 
 
 	out << strlen("1234") << endl;
 

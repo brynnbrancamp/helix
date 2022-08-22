@@ -10,9 +10,8 @@ auto stream::write(u8 const* val, usize size) -> stream&
 	{
 		if(val[i] == '\r') {
 			this->flush();
-		} else {
-			this->buffer.push(val[i]);
 		}
+		this->buffer.push(val[i]);
 	}	
 
 	return *this;
