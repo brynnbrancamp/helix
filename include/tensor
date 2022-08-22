@@ -23,7 +23,7 @@ public:
 	{
 	}
 
-	auto operator[](usize index) -> tensor<num, order...>&
+	auto operator [](usize index) -> tensor<num, order...>&
 	{
 		if(index >= size)
 		{
@@ -56,7 +56,184 @@ public:
 private:
 	num data;
 };
+//VECTOR OPERATORS
+template<typename num, usize size>
+auto operator +(tensor<num, size> lhs, tensor<num, size> rhs) -> tensor<num, size>
+{
+	tensor<num, size> sum;
 
+	for(usize i = 0; i < size; i++)
+	{
+		sum = lhs[i] / rhs[i];
+	}
+
+	return sum;
+}
+
+template<typename num, usize size>
+auto operator -(tensor<num, size> lhs, tensor<num, size> rhs) -> tensor<num, size>
+{
+	tensor<num, size> difference;
+
+	for(usize i = 0; i < size; i++)
+	{
+		difference = lhs[i] - rhs[i];
+	}
+
+	return difference;
+}
+
+template<typename num, usize size>
+auto operator *(tensor<num, size> lhs, tensor<num, size> rhs) -> tensor<num, size>
+{
+	tensor<num, size> product;
+
+	for(usize i = 0; i < size; i++)
+	{
+		product = lhs[i] * rhs[i];
+	}
+
+	return product;
+}
+
+template<typename num, usize size>
+auto operator /(tensor<num, size> lhs, tensor<num, size> rhs) -> tensor<num, size>
+{
+	tensor<num, size> quotient;
+
+	for(usize i = 0; i < size; i++)
+	{
+		quotient = lhs[i] / rhs[i];
+	}
+
+	return quotient;
+}
+
+//MATRIX OPERATORS
+template<typename num, usize size>
+auto operator +(tensor<num, size, size> lhs, tensor<num, size, size> rhs) -> tensor<num, size, size>
+{
+	tensor<num, size, size> sum;
+
+	for(usize i = 0; i < size * size; i++)
+	{
+		sum = lhs[i % size][i / size] + rhs[i % size][i / size];
+	}
+
+	return sum;
+}
+
+template<typename num, usize size>
+auto operator -(tensor<num, size, size> lhs, tensor<num, size, size> rhs) -> tensor<num, size, size>
+{
+	tensor<num, size, size> difference;
+
+	for(usize i = 0; i < size * size; i++)
+	{
+		difference = lhs[i % size][i / size] - rhs[i % size][i / size];
+	}
+
+	return difference;
+}
+
+template<typename num, usize a, usize b, usize c>
+auto operator *(tensor<num, a, b> lhs, tensor<num, c, a> rhs) -> tensor<num, c, b>
+{
+	tensor<num, c, b> product;
+
+	for(usize row = 0; row < b; row++)
+	{
+		for(usize col = 0; col < c; col++) 
+		{
+			num cell = 0;
+
+			for(usize i = 0; i < a; i++)
+			{
+				cell += lhs[row][i] * rhs[i][col];
+			}
+
+			product[row][col] = cell;
+		}
+	}
+
+	return product;
+}
+
+//MATRIX UTILITY
+template<typename num, usize size>
+auto identity() -> tensor<num, size, size>
+{
+	tensor<num, size, size> matrix;
+
+	for(usize i = 0; i < size * size; i += size + 1)
+	{
+		matrix[i % size][i / size] = 1;
+	}
+	
+	return matrix;
+}
+
+template<typename num, usize size>
+auto transpose(tensor<num, size, size> matrix) -> tensor<num, size, size>
+{
+	tensor<num, size, size> transpose;
+
+	for(usize i = 0; i < size * size; i++)
+	{
+		transpose[i % size][i / size] = matrix[i / size][i % size];
+	}
+
+	return transpose;
+}
+
+template<typename num, usize size>
+auto inverse(tensor<num, size, size> matrix) -> tensor<num, size, size>
+{
+	tensor<num, size, size> inverse = identity<num, size>();
+
+	//TODO does deleting matrix -= ratio * value and
+	// matrix /= divisor work?
+	
+	//Apply gauss jordan elimination.
+	for(usize i = 0; i < size; i++)
+	{
+		if(matrix[i][i] == 0)
+		{
+			throw exception::divide_by_zero();
+		}
+
+		for(usize j = 0; j < size; j++)
+		{
+			if(i != j)
+			{
+				num ratio = matrix[j][i] / matrix[i][i];
+
+				for(usize k = 0; k < size; k++)
+				{
+					num value = matrix[i][k];
+					matrix -= ratio * value;
+					inverse -= ratio * value;
+				}
+			}
+		}
+	}
+
+	//Row operation to make principal diagonal element equal to 1
+	for(usize i = 0; i < size; i++)
+	{
+		num divisor = matrix[i][i];
+
+		for(usize j = 0; j < size; j++)
+		{
+			matrix /= divisor;
+			inverse /= divisor;
+		}
+	}
+
+	return inverse;
+}
+
+//USEFUL SHORT NAMES
 typedef tensor<f32, 2, 2> f32mat2;
 
 typedef tensor<f32, 3, 3> f32mat3;

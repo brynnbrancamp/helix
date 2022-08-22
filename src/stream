@@ -1,0 +1,29 @@
+/* vim: set ft=cpp: */
+
+#include <stream>
+#include <io>
+#include <sys>
+
+auto stream::write(u8 const* val, usize size) -> stream&
+{
+	for(usize i = 0; i < size; i++)
+	{
+		if(val[i] == '\r') {
+			this->flush();
+		} else {
+			this->buffer.push(val[i]);
+		}
+	}	
+
+	return *this;
+}
+
+auto stream::read(u8* val, usize size) -> stream&
+{
+	for(usize i = 0; i < size; i++)
+	{
+		val[i] = buffer.pop();
+	}	
+
+	return *this;
+}

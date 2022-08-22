@@ -1,8 +1,6 @@
 /* vim: set ft=cpp: */ 
 #pragma once
 
-#include <prelude>
-
 namespace exception 
 {
 	struct exception 
@@ -10,6 +8,10 @@ namespace exception
 	};
 
 	struct out_of_bounds : exception
+	{
+	};
+	
+	struct divide_by_zero : exception
 	{
 	};
 }

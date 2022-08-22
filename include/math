@@ -5,7 +5,8 @@
 #include <tensor>
 
 template<typename num>
-auto pow(num base, num power) -> num {
+auto pow(num base, num power) -> num
+{
 	if(power == 0)
 	{
 		return 1;
@@ -29,13 +30,9 @@ auto ceil(num a)
 	return static_cast<num>(b + 1);
 }
 
-template<typename num, num b>
-auto log(num a) -> num {
-	return log(a) / log(b);
-}
-
 template<typename num>
-auto log(num a) {
+auto log(num a) 
+{
 	num value = -1;
 	while(a) {
 		value++;
@@ -44,4 +41,28 @@ auto log(num a) {
 	return value;
 }
 
+template<typename num, num b>
+auto log(num a) -> num 
+{
+	return log<num>(a) / log<num>(b);
+}
 
+template<typename num>
+auto min(num a, num b) -> num
+{
+	if(a < b) {
+		return a;
+	} else {
+		return b;
+	}
+}
+
+template<typename num>
+auto max(num a, num b) -> num
+{
+	if(a > b) {
+		return a;
+	} else {
+		return b;
+	}
+}

@@ -4,7 +4,7 @@
 #include <prelude>
 #include <sys>
 #include <math>
-#include <exception>
+#include <Windows.h>
 
 template <typename item>
 class vec
@@ -15,7 +15,7 @@ public:
 	}
 
 	vec(usize capacity) : 
-		capacity,
+		capacity(capacity),
 		len(0),
 		data(nullptr)
 	{
@@ -29,7 +29,25 @@ public:
 
 	~vec()
 	{
-		dealloc(this->data);
+		dealloc(this->data, this->capacity);
+	}
+
+	vec(const vec& other) : vec(other.data) {}
+
+	auto length() const -> usize
+	{
+		return this->len;
+	}
+
+	vec& operator =(const vec& other)
+	{
+		if (this == &other)
+			return *this;
+
+		this->clear();
+		this->extend(other);
+
+		return *this;
 	}
 
 	auto push(item element)
@@ -37,20 +55,30 @@ public:
 		if(capacity == 0)
 		{
 			this->data = alloc<item>(1);
-		} else if(capacity <= len + 1) {
-			//might be log(capacity + 1)
-			usize base = 2;
-			usize power = ceil(log<usize, 10>(this->capacity) / log<usize, 10>(2));
-			usize new_capacity = pow(base, power); 
+			this->capacity = 1;
+		} else if(capacity == len) {
+			//temporary
+			usize new_capacity = 1024; 
 			this->data = realloc(this->data, this->capacity, new_capacity);
 			this->capacity = new_capacity;
 		}
 
-		this->data[this->len] = element;
-		this->len++;
+		this->data[this->len++] = element;
 	}
 
-	auto operator [](usize index) -> item& 
+	auto extend(const vec& other) {
+		for(usize i = 0; i < other.length(); i++)
+		{
+			this->push(other[i]);
+		}
+	}
+
+	auto pop() -> item
+	{
+		return this->data[this->len--];
+	}
+	
+	auto operator [](usize index) const -> item& 
 	{
 		if(index >= this->len)
 		{
@@ -58,6 +86,21 @@ public:
 		}
 
 		return this->data[index];
+	}
+
+	auto clear()
+	{
+		this->len = 0;
+	}
+	
+	operator item*() const
+	{
+		return this->data;
+	}
+	
+	operator item const*() const
+	{
+		return this->data;
 	}
 private:
 	usize capacity;

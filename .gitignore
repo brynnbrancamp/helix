@@ -1,2 +1,4 @@
 target
 objects
+.vs
+*.stackdump

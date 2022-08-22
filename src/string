@@ -1,17 +1,102 @@
 /* vim: set ft=cpp: */
 
-#include <exception>
-/*
-auto string::operator [](usize index) -> i8& {
-	if(index >= this->len)
+#include <prelude>
+
+usize strlen(i8* str)
+{
+	usize len = 0;
+	while(str[len++] != '\0');
+	return len;
+}
+
+void dtoa(f64 i, i8 b[], usize prec)
+{
+	if(!(i == i))
 	{
-		throw new exception::out_of_bounds(
-				string("the len is ")
-				<< this->len 
-				<< string(" but the index is ") 
-				<< index
-				);
+		strcpy(b, "nan");
+		return;
+	}	
+
+	const double threshold_max = (double)(0x7FFFFFFF);
+
+	char* str = b;
+
+	prec = min(prec, static_cast<usize>(9));
+
+	bool neg = false;
+
+	if(i < 0)
+	{
+		neg = true;
+		i = -i;
 	}
 
+	usize whole = static_cast<usize>(i);
+
+	double tmp = (i - whole) * pow(static_cast<usize>(10), prec); 
+
+	usize frac = static_cast<usize>(tmp);
+
+	double diff = tmp - frac;
+
+	if(diff > 0.5)
+	{
+		++frac;
+
+		if(frac >= pow(static_cast<usize>(10), prec))
+		{
+			frac = 0;
+			++whole;
+		}
+	} 
+	else if(diff == 0.5 && ((frac == 0) || (frac & 1)))
+	{
+		++frac;
+	}
+
+	if(i > threshold_max)
+	{
+		//return exponential
+	}
+
+	if(prec == 0)
+	{
+		diff = i - whole;
+		
+		if(diff > 0.5) 
+		{
+			++whole;	
+		}
+		else if(diff == 0.5 && (whole & 1))
+		{
+			++whole;
+		}
+	}
+	else
+	{
+		usize count = prec;
+
+		do
+		{
+			--count;
+			*str++ = static_cast<i8>(48 + (frac % 10));
+		} while(frac /= 10);
+
+		while(count-- > 0) *str++ = '0';
+
+		*str++ = '.';
+	}
+
+	do *str++ = static_cast<i8>(48 + (whole % 10)); while (whole /= 10);
+
+	if(neg)
+	{
+		*str++ = '-';
+	}
+	
+	memrev(b, str - b);
+}
+
+auto string::operator [](usize index) const -> i8& {
 	return this->data[index];
-}*/
+}

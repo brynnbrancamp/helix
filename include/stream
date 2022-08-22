@@ -1,0 +1,50 @@
+/* vim: set ft=cpp: */
+#pragma once
+
+#include <prelude>
+
+class stream {
+public:
+	stream() :
+		buffer()
+	{
+	}
+	
+	template<typename data>
+	auto write(data const* val, usize size) -> stream&;
+	
+	auto write(u8 const*, usize size) -> stream&;
+
+	template<typename data>
+	auto read(data* val, usize size) -> stream&;
+	
+	auto read(u8* val, usize size) -> stream&;
+	
+	virtual void flush()
+	{
+	}
+
+protected:
+	vec<u8> buffer;
+};
+
+template<typename data>
+auto stream::write(data const* val, usize size) -> stream&
+{
+	u8 const* bytes = reinterpret_cast<u8 const*>(val);
+
+	this->write(bytes, size * sizeof(val[0]));
+
+	return *this;
+}
+
+template<typename data>
+auto stream::read(data* val, usize size) -> stream&
+{
+	u8* bytes = reinterpret_cast<u8*>(val);
+
+	this->read(bytes, size * sizeof(val[0]));
+
+	return *this;
+}
+

@@ -3,21 +3,48 @@
 
 #include <prelude>
 
-template<typename T>
-auto alloc(usize capacity) -> T*
+template<typename data>
+auto memcpy(data* dst, data* src, usize size)
 {
-	return reinterpret_cast<T*>(new u8[capacity * sizeof(T)]);
+	for(usize i = 0; i < size; i++)
+	{
+		dst[i] = src[i];
+	}
 }
 
-template<typename T>
-auto realloc(T* old_ptr, usize old_capacity, usize new_capacity) -> T*
+template<typename data>
+auto memswap(data* one, data* two)
 {
-	for(int i = new_capacity; i < old_capacity; i++)
+	data temp = *one;
+	*one = *two;
+	*two = temp;
+}
+
+
+template<typename data>
+auto memrev(data* ptr, usize size)
+{
+	for(i8* p1 = ptr, *p2 = ptr + size - 1; p2 > p1; ++p1, --p2)
 	{
-		old_ptr[i].~T();
+		memswap(p1, p2);
+	}
+}
+
+template<typename data>
+auto alloc(usize capacity) -> data*
+{
+	return reinterpret_cast<data*>(new u8[capacity * sizeof(data)]);
+}
+
+template<typename data>
+auto realloc(data* old_ptr, usize old_capacity, usize new_capacity) -> data*
+{
+	for(usize i = new_capacity; i < old_capacity; i++)
+	{
+		old_ptr[i].~data();
 	}
 
-	T* new_ptr = reinterpret_cast<T*>(new u8[new_capacity * sizeof(T)]);
+	data* new_ptr = reinterpret_cast<data*>(new u8[new_capacity * sizeof(data)]);
 
 	memcpy(new_ptr, old_ptr, new_capacity);
 
@@ -26,20 +53,13 @@ auto realloc(T* old_ptr, usize old_capacity, usize new_capacity) -> T*
 	return new_ptr;
 }
 
-template<typename T>
-auto dealloc(T* ptr, usize capacity) {
-	for(int i = 0; i < capacity; i++)
+template<typename data>
+auto dealloc(data* ptr, usize capacity) {
+	for(usize i = 0; i < capacity; i++)
 	{
-		ptr[i].~T();
+		ptr[i].~data();
 	}
 
 	delete[] reinterpret_cast<u8*>(ptr);
 }
 
-auto memcpy(dst: u8*, src: u8*, bytes: usize)
-{
-	for(int i = 0; i < bytes; i++)
-	{
-		dst[i] = src[i];
-	}
-}
