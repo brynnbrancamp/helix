@@ -67,6 +67,7 @@ private:
 };
 
 extern out_stream out;
+extern out_stream err;
 extern in_stream in;
 
 template<typename data>

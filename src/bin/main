@@ -7,6 +7,8 @@
 auto main(i32 argc, i8* argv[]) -> i32
 {
 	out << "Hello, world!" << endl;
+	
+	err << "Is this thing on?" << endl;
 
 	f32 f = 420.69;
 

@@ -17,6 +17,7 @@ stream& endl(stream& s)
 }
 
 out_stream out = out_stream(out_sink);
+out_stream err = out_stream(err_sink);
 in_stream in = in_stream(in_source);
 
 void out_sink(u8 val[])
