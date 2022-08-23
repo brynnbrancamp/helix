@@ -8,9 +8,6 @@ auto stream::write(u8 const* val, usize size) -> stream&
 {
 	for(usize i = 0; i < size; i++)
 	{
-		if(val[i] == '\r') {
-			this->flush();
-		}
 		this->buffer.push(val[i]);
 	}	
 
@@ -25,4 +22,8 @@ auto stream::read(u8* val, usize size) -> stream&
 	}	
 
 	return *this;
+}
+
+auto stream::apply(stream_op op) -> stream& {
+	return op(*this);
 }

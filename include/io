@@ -4,7 +4,9 @@
 #include <prelude>
 #include <stream>
 
-extern const i8* endl;
+stream& end(stream& s);
+
+stream& endl(stream& s);
 	
 typedef u8*  (*source)();
 typedef void (*sink)(u8 val[]);
@@ -29,6 +31,8 @@ public:
 
 	auto operator << (f32 val) -> out_stream&;
 	auto operator << (f64 val) -> out_stream&;
+	
+	auto operator << (stream_op op) -> out_stream&;
 
 	void flush()
 	{

@@ -6,18 +6,13 @@
 
 auto main(i32 argc, i8* argv[]) -> i32
 {
-	mat4 matrix = identity<f32, 4>();
-	
-	matrix[2][2] = 3;
-
 	out << "Hello, world!" << endl;
 
 	f32 f = 420.69;
 
-	//for some reason, have to send endl twice for newline
 	out << "Here is a floating point number: " << f << endl; 
 
-	out << strlen("1234") << endl;
+	out << "strlen(\"1234\") = " << strlen("1234") << endl;
 
 	out << "Please input chars:" << endl;
 

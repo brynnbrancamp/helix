@@ -3,6 +3,10 @@
 
 #include <prelude>
 
+class stream;
+
+typedef stream& (*stream_op)(stream&);
+
 class stream {
 public:
 	stream() :
@@ -19,7 +23,9 @@ public:
 	auto read(data* val, usize size) -> stream&;
 	
 	auto read(u8* val, usize size) -> stream&;
-	
+
+	auto apply(stream_op op) -> stream&;
+
 	virtual void flush()
 	{
 	}
@@ -47,4 +53,3 @@ auto stream::read(data* val, usize size) -> stream&
 
 	return *this;
 }
-

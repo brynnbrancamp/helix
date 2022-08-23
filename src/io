@@ -3,7 +3,18 @@
 
 #include <Windows.h>
 
-const i8* endl = "\r\n";
+stream& end(stream& s)
+{
+	s.flush();
+	return s;
+}
+
+stream& endl(stream& s)
+{
+	s.flush();
+	s.write("\n", 1);
+	return s;
+}
 
 out_stream out = out_stream(out_sink);
 in_stream in = in_stream(in_source);
@@ -35,6 +46,7 @@ void err_sink(u8 val[])
 #define IN_SOURCE_BUFFER_LEN 1024
 
 static u8 in_source_buffer[IN_SOURCE_BUFFER_LEN];
+static bool capitalized = false;
 
 u8* in_source()
 {
@@ -53,14 +65,32 @@ u8* in_source()
 
 	usize read = static_cast<usize>(ret);
 
-	usize j = 0;
-	for(usize i = 0; i < read; i++)
+	for(usize i = 0, j = 0; i < read; i++)
 	{
 		if(input_record_buffer[i].EventType == KEY_EVENT)
 		{
-			in_source_buffer[j++] = 
-				input_record_buffer[i].Event.KeyEvent.uChar.AsciiChar;
+			bool shift_key = input_record_buffer[i].Event.KeyEvent.wVirtualKeyCode == VK_SHIFT;
+			bool shift_state = (input_record_buffer[i].Event.KeyEvent.dwControlKeyState & SHIFT_PRESSED) != 0;
+			bool key_down = input_record_buffer[i].Event.KeyEvent.bKeyDown;
+			i8 ascii_char = input_record_buffer[i].Event.KeyEvent.uChar.AsciiChar;
+
+			if(shift_state)
+			{
+				capitalized = key_down;
+			}
+
+			if(shift_key)
+			{
+				continue;
+			}
+
+			if(capitalized) {
+				ascii_char ^= 0x20;
+			}
+
+			in_source_buffer[j++] = ascii_char;
 		}
+		
 	}
 
 	return in_source_buffer;
@@ -98,6 +128,12 @@ auto out_stream::operator << (f64 val) -> out_stream& {
 	return *this;
 }
 
+auto out_stream::operator << (stream_op op) -> out_stream& {
+	this->apply(op);
+
+	return *this;
+}
+
 auto in_stream::operator >> (string& val) -> in_stream& {
 	vec<u8> data;
 
@@ -121,7 +157,7 @@ auto in_stream::operator >> (string& val) -> in_stream& {
 			} 
 			else 
 			{
-				out << reinterpret_cast<i8 const*>(&byte) << "\r";
+				out << reinterpret_cast<i8 const*>(&byte) << end;
 				data.push(byte);
 			}
 		}
