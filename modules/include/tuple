@@ -1,0 +1,32 @@
+/* vim: set ft=cpp: */
+
+#include <primitive>
+#include <traits>
+
+template<usize i, typename data>
+struct tuple_leaf
+{
+public:
+	data value;
+};
+
+template<typename... data>
+class tuple : public tuple_leaf<type_index<data, data...>(), data>...
+{
+public:
+	tuple()
+	{
+	}
+
+	tuple(data... val)
+	{
+		((this->access<type_index<data, data...>()>() = val), ...);
+	}
+
+	template<usize i>
+	auto access() -> typename index_type<i, data...>::type&
+	{
+		return static_cast<tuple_leaf<i, typename index_type<i, data...>::type>*>(this)->value;
+	};
+};
+

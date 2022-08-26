@@ -32,7 +32,7 @@ public:
 		dealloc(this->data, this->capacity);
 	}
 
-	vec(const vec& other) : vec(other.data) {}
+	vec(const vec& other) : data(other.data) {}
 
 	auto length() const -> usize
 	{

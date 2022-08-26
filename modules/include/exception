@@ -14,4 +14,8 @@ namespace exception
 	struct divide_by_zero : exception
 	{
 	};
+	
+	struct system_error : exception
+	{
+	};
 }

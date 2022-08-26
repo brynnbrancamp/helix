@@ -1,0 +1,39 @@
+/* vim: set ft=cpp: */
+
+#include <window>
+#include <Windows.h>
+
+window::window()
+{
+	const i16 class_name[] = L"Hexane";
+
+	WNDCLASS wc = {};
+
+	wc.lpfnWndProc = wnd_proc;
+	wc.lpszClassName = class_name;
+
+	RegisterClass(&wc);
+
+	const i16 window_name[] = L"Window";
+
+	this->hwnd = CreateWindowEx
+	(
+		0,
+		class_name,
+		window_name,
+		WS_OVERLAPPEDWINDOW,
+		CW_USEDEFAULT,
+		CW_USEDEFAULT,
+		CW_USEDEFAULT,
+		CW_USEDEFAULT,
+		0,
+		0,
+		0,
+		0,
+	);
+
+	if(this->hwnd == nullptr)
+	{
+		throw exception::system_error();
+	}
+}

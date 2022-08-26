@@ -1,0 +1,43 @@
+/* vim: set ft=cpp: */
+
+template<typename t, typename u>
+struct same 
+{
+    static const bool value = false; 
+};
+
+template<typename t>
+struct same<t, t>
+{ 
+   static const bool value = true; 
+};
+
+template<typename target, typename head, typename... tail>
+constexpr usize type_index()
+{
+	if constexpr(same<target, head>::value)
+	{
+		return 0;
+	} 
+	else 
+	{
+		return 1 + type_index<target, tail...>();
+	}
+}
+
+template<usize index, typename... pack>
+struct index_type
+{
+};
+
+template<typename head, typename... tail>
+struct index_type<0, head, tail...>
+{
+	using type = head;
+};
+
+template<usize index, typename head, typename... tail>
+struct index_type<index, head, tail...>
+{
+	using type = typename index_type<index - 1, tail...>::type;
+};

@@ -1,0 +1,21 @@
+/* vim: set ft=cpp: */
+
+#include <prelude>
+
+class window
+{
+public:
+	window();	
+	~window();
+
+	window(const window& other) = delete;
+	window& operator =(const window& other) = delete;
+	
+	auto set_title(string str) -> window&;
+	auto set_resolution(tuple<usize, usize> resolution) -> window&;
+
+	auto get_title() -> string;
+	auto get_resolution() -> tuple<usize, usize>;
+private:
+	void* hwnd;
+};

@@ -1,24 +1,7 @@
 /* vim: set ft=cpp: */
+
 #include <io>
-
 #include <Windows.h>
-
-stream& end(stream& s)
-{
-	s.flush();
-	return s;
-}
-
-stream& endl(stream& s)
-{
-	s.flush();
-	s.write("\n", 1);
-	return s;
-}
-
-out_stream out = out_stream(out_sink);
-out_stream err = out_stream(err_sink);
-in_stream in = in_stream(in_source);
 
 void out_sink(u8 val[])
 {
@@ -95,84 +78,4 @@ u8* in_source()
 	}
 
 	return in_source_buffer;
-}
-
-auto out_stream::operator << (string val) -> out_stream& {
-	this->write(static_cast<i8 const*>(val), val.length());
-
-	return *this;
-}
-
-auto out_stream::operator << (i8 const* val) -> out_stream& {
-	this->write(val, strlen(val));
-
-	return *this;
-}
-
-auto out_stream::operator << (f32 val) -> out_stream& {
-	i8 chars[256] = {};
-
-	dtoa(static_cast<f64>(val), chars, 10);
-
-	this->write(chars, strlen(chars));
-
-	return *this;
-}
-
-auto out_stream::operator << (f64 val) -> out_stream& {
-	i8 chars[256] = {};
-
-	dtoa(val, chars, 10);
-
-	this->write(chars, strlen(chars));
-
-	return *this;
-}
-
-auto out_stream::operator << (stream_op op) -> out_stream& {
-	this->apply(op);
-
-	return *this;
-}
-
-auto in_stream::operator >> (string& val) -> in_stream& {
-	vec<u8> data;
-
-	bool ret = false;
-
-	while(!ret) 
-	{
-		this->flush();
-		while(this->buffer.length() > 0) 
-		{
-			u8 byte = this->buffer.pop();
-
-			if (byte == '\r') 
-			{
-				ret = true;
-				break;
-			} 
-			else if(byte == '\0') 
-			{
-				continue;
-			} 
-			else 
-			{
-				out << reinterpret_cast<i8 const*>(&byte) << end;
-				data.push(byte);
-			}
-		}
-	}
-
-	out << endl;
-	
-	data.push('\0');
-
-	u8 const* bytes = static_cast<u8 const*>(data);
-
-	i8 const* chars = reinterpret_cast<i8 const*>(bytes);
-
-	val = string(chars);
-
-	return *this;
 }

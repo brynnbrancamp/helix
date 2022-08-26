@@ -70,6 +70,7 @@ extern out_stream out;
 extern out_stream err;
 extern in_stream in;
 
+
 template<typename data>
 auto out_stream::operator << (data val) -> out_stream& {
 	i8 chars[256] = {};
