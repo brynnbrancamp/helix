@@ -4,81 +4,83 @@
 #include <prelude>
 #include <stream>
 
-stream& end(stream& s);
-
-stream& endl(stream& s);
-	
-typedef u8*  (*source)();
-typedef void (*sink)(u8 val[]);
-
-void out_sink(u8 val[]);
-void err_sink(u8 val[]);
-u8*  in_source();
-
-class out_stream : public stream
+namespace helix
 {
-public:
-	out_stream(sink out) : stream(),
-		out(out)
+	stream& end(stream& s);
+
+	stream& endl(stream& s);
+		
+	typedef u8*  (*source)();
+	typedef void (*sink)(u8 val[]);
+
+	void out_sink(u8 val[]);
+	void err_sink(u8 val[]);
+	u8*  in_source();
+
+	class out_stream : public stream
 	{
-	}
+	public:
+		out_stream(sink out) : stream(),
+			out(out)
+		{
+		}
+
+		template<typename data>
+		auto operator << (data val) -> out_stream&;
+		
+		auto operator << (string val) -> out_stream&;
+		auto operator << (i8 const* val) -> out_stream&;
+
+		auto operator << (f32 val) -> out_stream&;
+		auto operator << (f64 val) -> out_stream&;
+		
+		auto operator << (stream_op op) -> out_stream&;
+
+		void flush()
+		{
+			this->buffer.push('\0');
+			this->out(this->buffer);
+			this->buffer.clear();
+		}
+	private:
+		sink out;	
+	};
+
+	class in_stream : public stream
+	{
+	public:
+		in_stream(source in) : stream(),
+			in(in)
+		{
+		}
+
+		auto operator >> (string& val) -> in_stream&;
+
+		void flush()
+		{
+			u8* val = in();
+
+			usize i = 0;
+			while(val[i] != '\0')
+				this->buffer.push(val[i++]);
+		}
+	private:
+		source in;
+	};
+
+	extern out_stream out;
+	extern out_stream err;
+	extern in_stream in;
+
 
 	template<typename data>
-	auto operator << (data val) -> out_stream&;
-	
-	auto operator << (string val) -> out_stream&;
-	auto operator << (i8 const* val) -> out_stream&;
+	auto out_stream::operator << (data val) -> out_stream& {
+		i8 chars[256] = {};
 
-	auto operator << (f32 val) -> out_stream&;
-	auto operator << (f64 val) -> out_stream&;
-	
-	auto operator << (stream_op op) -> out_stream&;
+		itoa(val, chars);
 
-	void flush()
-	{
-		this->buffer.push('\0');
-		this->out(this->buffer);
-		this->buffer.clear();
+		this->write(chars, strlen(chars));
+
+		return *this;
 	}
-private:
-	sink out;	
-};
-
-class in_stream : public stream
-{
-public:
-	in_stream(source in) : stream(),
-		in(in)
-	{
-	}
-
-	auto operator >> (string& val) -> in_stream&;
-
-	void flush()
-	{
-		u8* val = in();
-
-		usize i = 0;
-		while(val[i] != '\0')
-			this->buffer.push(val[i++]);
-	}
-private:
-	source in;
-};
-
-extern out_stream out;
-extern out_stream err;
-extern in_stream in;
-
-
-template<typename data>
-auto out_stream::operator << (data val) -> out_stream& {
-	i8 chars[256] = {};
-
-	itoa(val, chars);
-
-	this->write(chars, strlen(chars));
-
-	return *this;
 }
-

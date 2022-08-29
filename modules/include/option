@@ -1,0 +1,77 @@
+/* vim: set ft=cpp: */
+
+#include <prelude>
+
+namespace helix
+{
+	template<typename data>
+	class option
+	{
+		option()
+		{
+		}
+		
+		option(data value) :
+			some(true),
+			value(value)
+		{
+		}
+		
+		option(const data& value) :
+			some(true),
+			value(value)
+		{
+		}
+		
+		option(data&& value) :
+			some(true),
+			value(move(value))
+		{
+		}
+
+		auto is_some() -> bool
+		{
+			return this->some;
+		}
+
+		auto is_none() -> bool
+		{
+			return !this->some;
+		}
+
+		auto unwrap() const -> data 
+		{
+			if(this->is_some())
+			{
+				this->some = false;
+				return this->value;
+			}
+			else
+			{
+				throw exception::bad_access();
+			}
+		}
+
+		auto unwrap_or(data other) const -> data
+		{
+			return this->is_some() ? this->unwrap() : other;	
+		}
+
+		auto operator =(data value) -> option<data>&
+		{
+			this->some = true;
+			this->value = value;
+			return *this;
+		}
+
+	private:
+		bool some;
+		
+		//used to prevent default initialization
+		union 
+		{
+			data value;
+			u8 bytes[sizeof(data)];
+		};
+	};
+}

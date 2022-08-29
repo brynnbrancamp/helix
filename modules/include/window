@@ -1,0 +1,64 @@
+/* vim: set ft=cpp: */
+
+#include <prelude>
+
+namespace helix
+{
+	struct window_data;
+
+	struct window_event_close_requested
+	{
+	};
+
+	struct window_event_key
+	{
+	};
+
+	struct window_event_pointer
+	{
+	};
+
+	struct window_event_focus
+	{
+	};
+
+	struct window_event_resize
+	{
+	};
+
+	using window_event = variant
+	<
+	window_event_close_requested,
+	window_event_key,
+	window_event_pointer,
+	window_event_focus,
+	window_event_resize
+	>;
+
+	class window
+	{
+	public:
+		window();	
+		~window();
+
+		window(const window& other) = delete;
+		window& operator =(const window& other) = delete;
+
+		auto poll() -> option<window_event>;
+
+		auto set_visible(bool toggle) -> window&;
+		auto set_fullscreen(bool toggle) -> window&;
+		auto set_title(string str) -> window&;
+		auto set_resolution(tuple<usize, usize> resolution) -> window&;
+
+		auto get_visible() -> bool;
+		auto get_fullscreen() -> bool;
+		auto get_title() -> string;
+		auto get_resolution() -> tuple<usize, usize>;
+	private:
+		bool visible;
+		bool fullscreen;
+
+		window_data* data;
+	};
+}

@@ -1,32 +1,104 @@
 /* vim: set ft=cpp: */
+/* credit to Gabe Rundlett for the recursive nature of this code */
 
 #include <primitive>
 #include <traits>
 
-template<usize i, typename data>
-struct tuple_leaf
+namespace helix
 {
-public:
-	data value;
-};
+	template<usize i, typename... data>
+	struct tuple_data;
 
-template<typename... data>
-class tuple : public tuple_leaf<type_index<data, data...>(), data>...
-{
-public:
-	tuple()
+	template<usize i, typename t, typename... data>
+	struct tuple_data<i, t, data...> : tuple_data<i + 1, data...>
 	{
-	}
+		t value;
 
-	tuple(data... val)
-	{
-		((this->access<type_index<data, data...>()>() = val), ...);
-	}
+		template<usize n>
+		using type_index = condition
+		<
+			i == n, 
+			t, 
+			typename tuple_data<i + 1, data...>::type_index<n>
+		>;
 
-	template<usize i>
-	auto access() -> typename index_type<i, data...>::type&
-	{
-		return static_cast<tuple_leaf<i, typename index_type<i, data...>::type>*>(this)->value;
+		template<usize n>
+		using self_index = condition
+		<
+			i == n, 
+			tuple_data<i, t, data...>, 
+			typename tuple_data<i + 1, data...>::self_index<n>
+		>;
+
+		tuple_data() 
+		{
+		}
+
+		tuple_data(t x, data... values) : tuple_data<i + 1, data...> { values... }, 
+			value { x }
+		{
+		}
 	};
-};
 
+	template<usize i, typename t>
+	struct tuple_data<i, t>
+	{
+		t value;
+		
+		template<usize n>
+		using type_index = condition<i == n, t, void>;
+
+		template<usize n>
+		using self_index = condition<i == n, tuple_data<i, t>, void>;
+
+		tuple_data()
+		{
+		}
+
+		tuple_data(t x) : value { x }
+		{
+		}
+	};
+
+	template<typename... data>
+	class tuple : public tuple_data<0, data...>
+	{
+	public:
+		template<usize n>
+		using type_index = typename tuple_data<0, data...>::type_index<n>;
+
+		template<usize n>
+		using self_index = typename tuple_data<0, data...>::self_index<n>;
+
+		tuple()
+		{
+		}
+
+		tuple(data... values) : tuple_data<0, data...> { values... } 
+		{
+		}
+
+		template<usize i>
+		auto access() -> index_type<i, data...>&
+		{
+			using self = self_index<i>;
+			return this->self::value;
+		};
+
+		template<typename... other>
+		tuple(tuple<other...> val)
+		{
+			static_assert
+			(
+				sizeof...(other) == sizeof...(data),
+				"To assign two different types of tuples, "
+				"both must have the same number of elements"
+			);
+			[&]<usize... i>(seq<i...>)
+			{
+				((access<i>() = val.template access<i>()), ...);
+			}
+			(make_seq<sizeof...(data)>{});
+		}
+	};
+}

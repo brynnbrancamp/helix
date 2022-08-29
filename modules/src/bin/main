@@ -4,12 +4,53 @@
 #include <math>
 #include <io>
 #include <window>
+#include <bitset>
+
+using namespace helix;
 
 extern "C" auto main(i32 argc, i8* argv[]) -> i32
 {
-	window win;
+	window main_window;
+
+	main_window
+		.set_title("Quasi")
+		.set_resolution(tuple(960, 540))
+		.set_visible(true);
 
 
+	while(true) {
+		//handle window events
+		auto event = main_window.poll();
+
+		visit
+		(
+			[](auto&& event)
+			{
+				using type = decay<decltype(event)>;
+
+				if constexpr(eq<type, window_event_close_requested>)
+				{
+				}
+				
+				if constexpr(eq<type, window_event_key>)
+				{
+				}
+				
+				if constexpr(eq<type, window_event_pointer>)
+				{
+				}
+				
+				if constexpr(eq<type, window_event_focus>)
+				{
+				}
+				
+				if constexpr(eq<type, window_event_resize>)
+				{
+				}
+			},	
+			event
+		);
+	}
 
 	/*out << "Hello, world!" << endl;
 

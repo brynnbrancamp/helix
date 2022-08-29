@@ -1,39 +1,162 @@
 /* vim: set ft=cpp: */
 
 #include <window>
+
 #include <Windows.h>
 
-window::window()
+namespace helix
 {
-	const i16 class_name[] = L"Hexane";
-
-	WNDCLASS wc = {};
-
-	wc.lpfnWndProc = wnd_proc;
-	wc.lpszClassName = class_name;
-
-	RegisterClass(&wc);
-
-	const i16 window_name[] = L"Window";
-
-	this->hwnd = CreateWindowEx
-	(
-		0,
-		class_name,
-		window_name,
-		WS_OVERLAPPEDWINDOW,
-		CW_USEDEFAULT,
-		CW_USEDEFAULT,
-		CW_USEDEFAULT,
-		CW_USEDEFAULT,
-		0,
-		0,
-		0,
-		0,
-	);
-
-	if(this->hwnd == nullptr)
+	struct window_data
 	{
-		throw exception::system_error();
+		HWND hwnd;
+		WINDOWPLACEMENT wpc;
+		LONG style;
+		LONG style_ex;
+	};
+
+	window::window()
+	{
+		this->data = new window_data;
+
+		const i8 class_name[] = "Helix";
+
+		WNDCLASS wc = {};
+
+		wc.lpfnWndProc = DefWindowProcA;
+		wc.lpszClassName = class_name;
+
+		RegisterClass(&wc);
+
+		const i8 window_name[] = "Window";
+
+		this->data->hwnd = CreateWindowEx
+		(
+			0,
+			class_name,
+			window_name,
+			WS_OVERLAPPEDWINDOW,
+			CW_USEDEFAULT,
+			CW_USEDEFAULT,
+			CW_USEDEFAULT,
+			CW_USEDEFAULT,
+			0,
+			0,
+			0,
+			0
+		);
+
+		if(this->data->hwnd == nullptr)
+		{
+			throw exception::system_error();
+		}
+	}
+
+	window::~window()
+	{
+		DestroyWindow(this->data->hwnd);
+
+		delete this->data;
+	}
+
+	auto window::set_visible(bool toggle) -> window&
+	{
+		this->visible = toggle;
+
+		ShowWindow(this->data->hwnd, this->visible ? SW_SHOW : SW_HIDE);
+
+		return *this;
+	}
+
+	auto window::set_fullscreen(bool toggle) -> window&
+	{
+		if(this->fullscreen && !toggle) 
+		{
+			SetWindowLong(this->data->hwnd, GWL_STYLE, this->data->style);
+			SetWindowLong(this->data->hwnd, GWL_EXSTYLE, this->data->style_ex);
+			ShowWindow(this->data->hwnd, SW_SHOWNORMAL);
+			SetWindowPlacement(this->data->hwnd, &this->data->wpc);
+		}
+		else if(!this->fullscreen && toggle)
+		{
+			GetWindowPlacement(this->data->hwnd, &this->data->wpc );
+			if (this->data->style == 0 )
+				this->data->style = GetWindowLong(this->data->hwnd, GWL_STYLE);
+			if (this->data->style_ex == 0 )
+				this->data->style_ex = GetWindowLong(this->data->hwnd, GWL_EXSTYLE);
+
+			LONG new_style =this->data->style;
+			new_style &= ~WS_BORDER;
+			new_style &= ~WS_DLGFRAME;
+			new_style &= ~WS_THICKFRAME;
+
+			LONG new_style_ex = this->data->style_ex;
+			new_style_ex &= ~WS_EX_WINDOWEDGE;
+
+			SetWindowLong(this->data->hwnd, GWL_STYLE, new_style | WS_POPUP);
+			SetWindowLong(this->data->hwnd, GWL_EXSTYLE, new_style_ex | WS_EX_TOPMOST);
+			ShowWindow(this->data->hwnd, SW_SHOWMAXIMIZED);	
+		}
+
+		this->fullscreen = toggle;
+
+		return *this;
+	}
+
+	auto window::set_title(string str) -> window&
+	{
+		SetWindowTextA(this->data->hwnd, static_cast<i8 const*>(str));
+
+		return *this;
+	}
+
+	auto window::set_resolution(tuple<usize, usize> resolution) -> window&
+	{
+		SetWindowPos
+			(
+			 this->data->hwnd,
+			 0,
+			 0,
+			 0,
+			 static_cast<i32>(resolution.access<0>()),
+			 static_cast<i32>(resolution.access<1>()),
+			 SWP_NOMOVE
+			);
+		return *this;
+	}
+
+	auto window::get_visible() -> bool
+	{
+		return this->visible;
+	}
+
+	auto window::get_fullscreen() -> bool
+	{
+		return this->fullscreen;
+	}
+
+	auto window::get_title() -> string
+	{
+		i8 data[256] = {};
+
+		GetWindowTextA(this->data->hwnd, data, 256);
+
+		string str(data);
+
+		return str;
+	}
+
+	auto window::get_resolution() -> tuple<usize, usize>
+	{
+		RECT size;
+
+		GetClientRect(this->data->hwnd, &size);
+
+		tuple<usize, usize> resolution
+			(
+			 static_cast<usize>(size.right),
+			 static_cast<usize>(size.bottom)
+			);
+
+		return resolution;
 	}
 }

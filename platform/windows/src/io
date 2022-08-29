@@ -1,81 +1,84 @@
 /* vim: set ft=cpp: */
 
+#define IN_SOURCE_BUFFER_LEN 1024
+
 #include <io>
 #include <Windows.h>
 
-void out_sink(u8 val[])
+namespace helix
 {
-	usize len = 0;
-	while(val[len] != '\0')
-		++len;
-	
-	HANDLE stdout_handle = GetStdHandle(STD_OUTPUT_HANDLE);
-	DWORD ret;
-
-	WriteConsoleA(stdout_handle, val, len, &ret, NULL);
-}
-
-void err_sink(u8 val[])
-{
-	usize len = 0;
-	while(val[len] != '\0')
-		++len;
-
-	HANDLE stderr_handle = GetStdHandle(STD_ERROR_HANDLE);
-	DWORD ret;
-
-	WriteConsoleA(stderr_handle, val, len, &ret, NULL);
-}
-
-#define IN_SOURCE_BUFFER_LEN 1024
-
-static u8 in_source_buffer[IN_SOURCE_BUFFER_LEN];
-static bool capitalized = false;
-
-u8* in_source()
-{
-	for(usize i = 0; i < IN_SOURCE_BUFFER_LEN; i++) 
+	void out_sink(u8 val[])
 	{
-		in_source_buffer[i] = 0;
+		usize len = 0;
+		while(val[len] != '\0')
+			++len;
+		
+		HANDLE stdout_handle = GetStdHandle(STD_OUTPUT_HANDLE);
+		DWORD ret;
+
+		WriteConsoleA(stdout_handle, val, len, &ret, NULL);
 	}
-	
-	HANDLE stdin_handle = GetStdHandle(STD_INPUT_HANDLE);
-	DWORD ret;
 
-	INPUT_RECORD input_record_buffer[IN_SOURCE_BUFFER_LEN];
-
-	//Read one less than maximum so that the end is null (0)
-	ReadConsoleInput(stdin_handle, input_record_buffer, IN_SOURCE_BUFFER_LEN - 1, &ret);
-
-	usize read = static_cast<usize>(ret);
-
-	for(usize i = 0, j = 0; i < read; i++)
+	void err_sink(u8 val[])
 	{
-		if(input_record_buffer[i].EventType == KEY_EVENT)
+		usize len = 0;
+		while(val[len] != '\0')
+			++len;
+
+		HANDLE stderr_handle = GetStdHandle(STD_ERROR_HANDLE);
+		DWORD ret;
+
+		WriteConsoleA(stderr_handle, val, len, &ret, NULL);
+	}
+
+	static u8 in_source_buffer[IN_SOURCE_BUFFER_LEN];
+	static bool capitalized = false;
+
+	u8* in_source()
+	{
+		for(usize i = 0; i < IN_SOURCE_BUFFER_LEN; i++) 
 		{
-			bool shift_key = input_record_buffer[i].Event.KeyEvent.wVirtualKeyCode == VK_SHIFT;
-			bool shift_state = (input_record_buffer[i].Event.KeyEvent.dwControlKeyState & SHIFT_PRESSED) != 0;
-			bool key_down = input_record_buffer[i].Event.KeyEvent.bKeyDown;
-			i8 ascii_char = input_record_buffer[i].Event.KeyEvent.uChar.AsciiChar;
-
-			if(shift_state)
-			{
-				capitalized = key_down;
-			}
-
-			if(shift_key)
-			{
-				continue;
-			}
-
-			if(capitalized) {
-				ascii_char ^= 0x20;
-			}
-
-			in_source_buffer[j++] = ascii_char;
+			in_source_buffer[i] = 0;
 		}
 		
-	}
+		HANDLE stdin_handle = GetStdHandle(STD_INPUT_HANDLE);
+		DWORD ret;
 
-	return in_source_buffer;
+		INPUT_RECORD input_record_buffer[IN_SOURCE_BUFFER_LEN];
+
+		//Read one less than maximum so that the end is null (0)
+		ReadConsoleInput(stdin_handle, input_record_buffer, IN_SOURCE_BUFFER_LEN - 1, &ret);
+
+		usize read = static_cast<usize>(ret);
+
+		for(usize i = 0, j = 0; i < read; i++)
+		{
+			if(input_record_buffer[i].EventType == KEY_EVENT)
+			{
+				bool shift_key = input_record_buffer[i].Event.KeyEvent.wVirtualKeyCode == VK_SHIFT;
+				bool shift_state = (input_record_buffer[i].Event.KeyEvent.dwControlKeyState & SHIFT_PRESSED) != 0;
+				bool key_down = input_record_buffer[i].Event.KeyEvent.bKeyDown;
+				i8 ascii_char = input_record_buffer[i].Event.KeyEvent.uChar.AsciiChar;
+
+				if(shift_state)
+				{
+					capitalized = key_down;
+				}
+
+				if(shift_key)
+				{
+					continue;
+				}
+
+				if(capitalized) {
+					ascii_char ^= 0x20;
+				}
+
+				in_source_buffer[j++] = ascii_char;
+			}
+			
+		}
+
+		return in_source_buffer;
+	}
 }

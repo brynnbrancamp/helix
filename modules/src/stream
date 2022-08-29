@@ -4,26 +4,29 @@
 #include <io>
 #include <sys>
 
-auto stream::write(u8 const* val, usize size) -> stream&
+namespace helix
 {
-	for(usize i = 0; i < size; i++)
+	auto stream::write(u8 const* val, usize size) -> stream&
 	{
-		this->buffer.push(val[i]);
-	}	
+		for(usize i = 0; i < size; i++)
+		{
+			this->buffer.push(val[i]);
+		}	
 
-	return *this;
-}
+		return *this;
+	}
 
-auto stream::read(u8* val, usize size) -> stream&
-{
-	for(usize i = 0; i < size; i++)
+	auto stream::read(u8* val, usize size) -> stream&
 	{
-		val[i] = buffer.pop();
-	}	
+		for(usize i = 0; i < size; i++)
+		{
+			val[i] = buffer.pop();
+		}	
 
-	return *this;
-}
+		return *this;
+	}
 
-auto stream::apply(stream_op op) -> stream& {
-	return op(*this);
+	auto stream::apply(stream_op op) -> stream& {
+		return op(*this);
+	}
 }

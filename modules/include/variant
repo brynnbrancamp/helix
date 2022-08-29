@@ -1,0 +1,116 @@
+/* vim: set ft=cpp: */
+
+#include <traits>
+
+namespace helix
+{
+	template<typename...>
+	struct variadic_union;
+
+	template<typename head>
+	struct variadic_union<head>
+	{
+		alignas(head) unsigned char data[sizeof(head)];
+
+		variadic_union(head value)
+		{
+			reinterpret_cast<head*>(this->data)[0] = value;
+		}
+
+		variadic_union(const head& value) : variadic_union(value)
+		{
+		}
+		
+		variadic_union(head&& value) : variadic_union(move(value))
+		{
+		}
+	};
+
+	template<typename head, typename... tail>
+	struct variadic_union<head, tail...>
+	{
+		union
+		{
+			alignas(head) unsigned char data[sizeof(head)];
+			variadic_union<tail...> rest;
+		};
+		
+		template
+		<
+			typename data,
+			typename = enable_if<eq<data, head> || contains<data, tail...>()>
+		>
+		variadic_union(data value)
+		{
+			reinterpret_cast<data*>(this->data)[0] = value;
+		}
+		
+		template
+		<
+			typename data,
+			typename = enable_if<eq<data, head> || contains<data, tail...>()>
+		>
+		variadic_union(const data& value) : variadic_union(value)
+		{
+		}
+
+		template
+		<
+			typename data,
+			typename = enable_if<eq<data, head> || contains<data, tail...>()>
+		>
+		variadic_union(data&& value) : variadic_union(move(value))
+		{
+		}
+	};
+
+	template<typename... data>
+	class variant
+	{	
+	public:
+		variant();
+		
+		template
+		<
+			typename item, 
+			typename = enable_if<contains<item, data...>()>
+		>
+		variant(item value)
+		{
+			this->type = type_index<item, data...>();
+			this->value = variadic_union(value);
+		}
+		
+		template
+		<
+			typename item, 
+			typename = enable_if<contains<item, data...>()>
+		>
+		variant(const item& value) : variant(value) 
+		{
+		}
+		
+		template
+		<
+			typename item, 
+			typename = enable_if<contains<item, data...>()>
+		>
+		variant(item&& value) : variant(move(value)) 
+		{
+		}
+
+		~variant()
+		{
+			using type = index_type<this->type, data...>;
+			this->value.~type();
+		}
+
+	private:
+		usize type;
+		
+		union 
+		{
+			variadic_union<data...> value;
+		};
+	};
+}

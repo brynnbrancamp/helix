@@ -5,86 +5,89 @@
 #include <sys>
 #include <math>
 
-class string 
+namespace helix
 {
-public:
-	string() : string("")
-	{	
-	}
-
-	string(const i8 data[]) :
-		data()
+	class string 
 	{
-		usize len = 0;
-		while(data[len] != '\0')
-			this->data.push(data[len++]);
-	}
+	public:
+		string() : string("")
+		{	
+		}
 
-	string(const string& other) : string(other.data) {}
+		string(const i8 data[]) :
+			data()
+		{
+			usize len = 0;
+			while(data[len] != '\0')
+				this->data.push(data[len++]);
+		}
 
-	auto length() const -> usize
-	{
-		return this->data.length();
-	}
+		string(const string& other) : string(other.data) {}
 
-	string& operator =(const string& other)
-	{
-		if (this == &other)
+		auto length() const -> usize
+		{
+			return this->data.length();
+		}
+
+		string& operator =(const string& other)
+		{
+			if (this == &other)
+				return *this;
+
+			this->data.clear();
+			this->data.extend(other.data);
+
 			return *this;
+		}
 
-		this->data.clear();
-		this->data.extend(other.data);
 
-		return *this;
+		operator i8*() const
+		{
+			return this->data;
+		}
+
+		operator i8 const*() const
+		{
+			return this->data;
+		}
+
+		auto operator [](usize index) const -> i8&;
+	private:
+		vec<i8> data;
+	};
+
+	usize strlen(i8 const* str);
+
+	i8* strcpy(i8* dest, i8 const* src);
+
+	void dtoa(f64 i, i8 b[], usize prec);
+
+	template<typename num>
+	auto itoa(num i, char b[])
+	{
+		i8 const digit[] = "0123456789";
+		i8* p = b;
+
+		if(i < 0)
+		{
+			*p++ = '-';
+			i *= -1;
+		}
+
+		num shifter = i;
+
+		do
+		{
+			++p;
+			shifter /= 10;
+		} while(shifter);
+
+		*p = '\0';
+
+		do
+		{
+			*--p = digit[i % 10];
+			i /= 10;
+		} while(i);
 	}
-
-
-	operator i8*() const
-	{
-		return this->data;
-	}
-
-	operator i8 const*() const
-	{
-		return this->data;
-	}
-
-	auto operator [](usize index) const -> i8&;
-private:
-	vec<i8> data;
-};
-
-usize strlen(i8* str);
-
-void dtoa(f64 i, i8 b[], usize prec);
-
-template<typename num>
-auto itoa(num i, char b[])
-{
-	i8 const digit[] = "0123456789";
-	i8* p = b;
-
-	if(i < 0)
-	{
-		*p++ = '-';
-		i *= -1;
-	}
-
-	num shifter = i;
-
-	do
-	{
-		++p;
-		shifter /= 10;
-	} while(shifter);
-
-	*p = '\0';
-
-	do
-	{
-		*--p = digit[i % 10];
-		i /= 10;
-	} while(i);
 }
-
-

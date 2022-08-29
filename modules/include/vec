@@ -4,106 +4,143 @@
 #include <prelude>
 #include <sys>
 #include <math>
-#include <Windows.h>
+#include <traits>
 
-template <typename item>
-class vec
+namespace helix
 {
-public:
-	vec() : vec(0)
+	template <typename item>
+	class vec
 	{
-	}
-
-	vec(usize capacity) : 
-		capacity(capacity),
-		len(0),
-		data(nullptr)
-	{
-		if(capacity == 0) 
+	public:
+		vec() : vec(0)
 		{
-			return;
-		}	
+		}
 
-		this->data = alloc<item>(capacity);
-	}
+		vec(usize capacity) : 
+			capacity(capacity),
+			len(0),
+			data(nullptr)
+		{
+			if(capacity == 0) 
+			{
+				return;
+			}	
 
-	~vec()
-	{
-		dealloc(this->data, this->capacity);
-	}
+			this->data = alloc<item>(capacity);
+		}
 
-	vec(const vec& other) : data(other.data) {}
+		~vec()
+		{
+			dealloc(this->data, this->capacity);
+		}
 
-	auto length() const -> usize
-	{
-		return this->len;
-	}
+		vec(const vec& other) : data(other.data) {}
 
-	vec& operator =(const vec& other)
-	{
-		if (this == &other)
+		auto length() const -> usize
+		{
+			return this->len;
+		}
+
+		vec& operator =(const vec& other)
+		{
+			if (this == &other)
+				return *this;
+
+			this->clear();
+			this->extend(other);
+
 			return *this;
-
-		this->clear();
-		this->extend(other);
-
-		return *this;
-	}
-
-	auto push(item element)
-	{
-		if(capacity == 0)
-		{
-			this->data = alloc<item>(1);
-			this->capacity = 1;
-		} else if(capacity == len) {
-			//temporary
-			usize new_capacity = 1024; 
-			this->data = realloc(this->data, this->capacity, new_capacity);
-			this->capacity = new_capacity;
 		}
 
-		this->data[this->len++] = element;
-	}
-
-	auto extend(const vec& other) {
-		for(usize i = 0; i < other.length(); i++)
+		void push(const item& element)
 		{
-			this->push(other[i]);
-		}
-	}
+			if(capacity == 0)
+			{
+				this->data = alloc<item>(1);
+				this->capacity = 1;
+			} else if(capacity == len) {
+				usize new_capacity = next_power_of_two(this->capacity);
+				this->data = realloc(this->data, this->capacity, new_capacity);
+				this->capacity = new_capacity;		
+			}
 
-	auto pop() -> item
-	{
-		return this->data[this->len--];
-	}
-	
-	auto operator [](usize index) const -> item& 
-	{
-		if(index >= this->len)
-		{
-			throw exception::out_of_bounds();
+			this->data[this->len++] = element;
 		}
 
-		return this->data[index];
-	}
+		void push(item&& element)
+		{
+			this->push(move(element));
+		}
 
-	auto clear()
-	{
-		this->len = 0;
-	}
-	
-	operator item*() const
-	{
-		return this->data;
-	}
-	
-	operator item const*() const
-	{
-		return this->data;
-	}
-private:
-	usize capacity;
-	usize len;
-	item* data;
-};
+		auto extend(const vec& other) {
+			for(usize i = 0; i < other.length(); i++)
+			{
+				this->push(other[i]);
+			}
+		}
+
+		auto pop() -> item
+		{
+			return this->data[this->len--];
+		}
+
+		auto resize(usize new_length)
+		{
+			this->resize(new_length, item());
+		}
+
+		auto resize(usize new_length, const item& value)
+		{
+			usize old_length = this->length();
+			
+			if(new_length == old_length)
+			{
+				return;
+			}
+
+			if(new_length > old_length) {
+				for(usize i = old_length; i < new_length; i++)
+				{
+					this->push(value);
+				}
+			}
+			else
+			{
+				for(usize i = new_length; i > old_length; i--)
+				{
+					this->pop();
+				}
+			}
+		}
+
+
+		auto operator [](usize index) const -> item& 
+		{
+			if(index >= this->len)
+			{
+				throw exception::out_of_bounds();
+			}
+
+			return this->data[index];
+		}
+
+		auto clear()
+		{
+			this->len = 0;
+		}
+
+		operator item*() const
+		{
+			return this->data;
+		}
+
+		operator item const*() const
+		{
+			return this->data;
+		}
+	private:
+		usize capacity;
+		usize len;
+		item* data;
+	};
+}

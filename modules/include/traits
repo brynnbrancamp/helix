@@ -1,43 +1,262 @@
 /* vim: set ft=cpp: */
+#pragma once
 
-template<typename t, typename u>
-struct same 
+namespace helix
 {
-    static const bool value = false; 
-};
-
-template<typename t>
-struct same<t, t>
-{ 
-   static const bool value = true; 
-};
-
-template<typename target, typename head, typename... tail>
-constexpr usize type_index()
-{
-	if constexpr(same<target, head>::value)
+	template<typename data, data val>
+	struct constant
 	{
-		return 0;
-	} 
-	else 
+	    static const data value = val; 
+	};
+
+	using true_t = constant<bool, true>;
+	using false_t = constant<bool, false>;
+
+	template<typename a, typename b>
+	struct eq_t : public false_t
 	{
-		return 1 + type_index<target, tail...>();
+	};
+
+	template<typename a>
+	struct eq_t<a, a> : public true_t
+	{
+	};
+
+	template<typename a, typename b>
+	static inline constexpr bool eq = eq_t<a, b>::value;
+
+	template<bool cond, typename a> 
+	struct enable_if_t
+	{
+		using type = a;
+	};
+	 
+	template<typename a> 
+	struct enable_if_t<true, a>
+	{
+		using type = a;
+	};
+
+	template<bool cond, typename a = void>
+	using enable_if = typename enable_if_t<cond, a>::type;
+
+	template<bool cond, typename a, typename b>
+	struct condition_t;
+
+	template<typename a, typename b>
+	struct condition_t<true, a, b>
+	{
+		using type = a;
+	};
+
+	template<typename a, typename b>
+	struct condition_t<false, a, b>
+	{
+		using type = b;
+	};
+
+	template<bool cond, typename a, typename b>
+	using condition = typename condition_t<cond, a, b>::type;
+
+	template<typename target, typename head, typename... tail>
+	constexpr usize type_index()
+	{
+		if constexpr(eq<target, head>)
+		{
+			return 0;
+		} 
+		else 
+		{
+			return 1 + type_index<target, tail...>();
+		}
 	}
+
+	template<typename target, typename head, typename... tail>
+	constexpr usize contains()
+	{
+		return eq<target, head> || contains<target, tail...>();
+	}
+
+	template<usize index, typename... pack>
+	struct index_type_t
+	{
+	};
+
+	template<typename head, typename... tail>
+	struct index_type_t<0, head, tail...>
+	{
+		using type = head;
+	};
+
+	template<usize index, typename head, typename... tail>
+	struct index_type_t<index, head, tail...>
+	{
+		using type = typename index_type_t<index - 1, tail...>::type;
+	};
+
+	template<usize index, typename... pack>
+	using index_type = typename index_type_t<index, pack...>::type;
+
+	template<usize... i>
+	struct seq {};
+
+	template<usize n, usize... i>
+	struct make_seq : public seq<n - 1, n - 1, i...> {};
+
+	template<usize... i>
+	struct make_seq<0, i...> : public seq<i...> {};
+
+	template<typename a>
+	struct is_signed_t : public false_t
+	{
+	};
+
+	template<>
+	struct is_signed_t<i8> : public true_t
+	{
+	};
+
+	template<>
+	struct is_signed_t<i16> : public true_t
+	{
+	};
+
+	template<>
+	struct is_signed_t<i32> : public true_t
+	{
+	};
+
+	template<>
+	struct is_signed_t<i64> : public true_t
+	{
+	};
+
+	template<>
+	struct is_signed_t<f32> : public true_t
+	{
+	};
+
+	template<>
+	struct is_signed_t<f64> : public true_t
+	{
+	};
+
+	template<typename a>
+	static inline constexpr bool is_signed = is_signed_t<a>::value;
+
+	template<typename data>
+	struct remove_reference_t {
+		using type = data;
+	};
+
+	template<typename data>
+	struct remove_reference_t<data&> { 
+		using type = data;
+	};
+
+	template<typename data>
+	struct remove_reference_t<data&&> 
+	{
+		using type = data;
+	};
+
+	template<typename data>
+	using remove_reference = typename remove_reference_t<data>::type;
+
+	template<typename data> 
+	struct is_lvalue_reference_t : public false_t
+	{
+	};
+
+
+	template<typename data> 
+	struct is_lvalue_reference_t<data&> : public true_t
+	{
+	};
+
+	template<typename data>
+	static inline constexpr bool is_lvalue_reference = is_lvalue_reference_t<data>::value;
+
+	template<typename data> 
+	struct is_rvalue_reference_t : public false_t
+	{
+	};
+
+	template<typename data> 
+	struct is_rvalue_reference_t<data&&> : public true_t
+	{
+	};
+
+	template<typename data>
+	static inline constexpr bool is_rvalue_reference = is_rvalue_reference_t<data>::value;
+
+	template<typename data>
+	constexpr data&& forward(remove_reference_t<data>& t) noexcept
+	{
+		return static_cast<data&&>(t);
+	}
+
+	template<typename data>
+	constexpr data&& forward(remove_reference_t<data>&& t) noexcept
+	{
+		return static_cast<data&&>(t);
+	}
+
+	template<typename data>
+	constexpr remove_reference<data>&& move(data&& t) noexcept
+	{
+		return static_cast<remove_reference<data>&&>(t);
+	}
+	
+	template<typename data> 
+	struct add_rvalue_reference_t
+	{
+	};
+
+	template<typename data> 
+	struct add_rvalue_reference_t<data&> : public false_t
+	{
+		using type = remove_reference<data>&;
+	};
+
+	template<typename data> 
+	struct add_rvalue_reference_t<data&&> : public false_t
+	{
+		using type = remove_reference<data>&&;
+	};
+
+	template<class data>
+	using add_rvalue_reference = typename add_rvalue_reference_t<data>::type;
+
+	template<typename data> 
+	struct add_lvalue_reference_t
+	{
+	};
+
+	template<typename data> 
+	struct add_lvalue_reference_t<data&> : public false_t
+	{
+		using type = remove_reference<data>&;
+	};
+
+	template<typename data> 
+	struct add_lvalue_reference_t<data&&> : public false_t
+	{
+		using type = remove_reference<data>&;
+	};
+
+	template<class data>
+	using add_lvalue_reference = typename add_lvalue_reference_t<data>::type;
+
+	template<class data> 
+	add_rvalue_reference_t<data> declval() noexcept;
+
+	template<typename data>
+	struct decay_t {
+		template<typename native> static native impl(native);
+		using type = decltype(impl(declval<data>()));
+	};
+
+	template<typename data>
+	using decay = typename decay_t<data>::type;
 }
-
-template<usize index, typename... pack>
-struct index_type
-{
-};
-
-template<typename head, typename... tail>
-struct index_type<0, head, tail...>
-{
-	using type = head;
-};
-
-template<usize index, typename head, typename... tail>
-struct index_type<index, head, tail...>
-{
-	using type = typename index_type<index - 1, tail...>::type;
-};

@@ -3,63 +3,65 @@
 
 #include <prelude>
 
-template<typename data>
-auto memcpy(data* dst, data* src, usize size)
+namespace helix
 {
-	for(usize i = 0; i < size; i++)
+	template<typename data>
+	auto memcpy(data* dst, data* src, usize size)
 	{
-		dst[i] = src[i];
-	}
-}
-
-template<typename data>
-auto memswap(data* one, data* two)
-{
-	data temp = *one;
-	*one = *two;
-	*two = temp;
-}
-
-
-template<typename data>
-auto memrev(data* ptr, usize size)
-{
-	for(i8* p1 = ptr, *p2 = ptr + size - 1; p2 > p1; ++p1, --p2)
-	{
-		memswap(p1, p2);
-	}
-}
-
-template<typename data>
-auto alloc(usize capacity) -> data*
-{
-	return reinterpret_cast<data*>(new u8[capacity * sizeof(data)]);
-}
-
-template<typename data>
-auto realloc(data* old_ptr, usize old_capacity, usize new_capacity) -> data*
-{
-	for(usize i = new_capacity; i < old_capacity; i++)
-	{
-		old_ptr[i].~data();
+		for(usize i = 0; i < size; i++)
+		{
+			dst[i] = src[i];
+		}
 	}
 
-	data* new_ptr = reinterpret_cast<data*>(new u8[new_capacity * sizeof(data)]);
-
-	memcpy(new_ptr, old_ptr, new_capacity);
-
-	delete[] reinterpret_cast<u8*>(old_ptr);
-
-	return new_ptr;
-}
-
-template<typename data>
-auto dealloc(data* ptr, usize capacity) {
-	for(usize i = 0; i < capacity; i++)
+	template<typename data>
+	auto memswap(data* one, data* two)
 	{
-		ptr[i].~data();
+		data temp = *one;
+		*one = *two;
+		*two = temp;
 	}
 
-	delete[] reinterpret_cast<u8*>(ptr);
-}
 
+	template<typename data>
+	auto memrev(data* ptr, usize size)
+	{
+		for(i8* p1 = ptr, *p2 = ptr + size - 1; p2 > p1; ++p1, --p2)
+		{
+			memswap(p1, p2);
+		}
+	}
+
+	template<typename data>
+	auto alloc(usize capacity) -> data*
+	{
+		return reinterpret_cast<data*>(new u8[capacity * sizeof(data)]);
+	}
+
+	template<typename data>
+	auto realloc(data* old_ptr, usize old_capacity, usize new_capacity) -> data*
+	{
+		for(usize i = new_capacity; i < old_capacity; i++)
+		{
+			old_ptr[i].~data();
+		}
+
+		data* new_ptr = reinterpret_cast<data*>(new u8[new_capacity * sizeof(data)]);
+
+		memcpy(new_ptr, old_ptr, new_capacity);
+
+		delete[] reinterpret_cast<u8*>(old_ptr);
+
+		return new_ptr;
+	}
+
+	template<typename data>
+	auto dealloc(data* ptr, usize capacity) {
+		for(usize i = 0; i < capacity; i++)
+		{
+			ptr[i].~data();
+		}
+
+		delete[] reinterpret_cast<u8*>(ptr);
+	}
+}

@@ -29,18 +29,28 @@ PLATFORM_SRC := $(shell find $(PLATFORM_SOURCE) -name "*" -type f)
 
 OBJ := $(shell find $(OBJECTS) -name "*" -type f) 
 
-build: 
-	$(shell rm -drf $(OBJECTS))
-	$(shell mkdir $(OBJECTS))
+clear_screen:
+	clear
 
+clean:
+	$(shell rm -drf $(OBJECTS))
+	$(shell mkdir -p $(OBJECTS))
+
+	$(shell rm -drf $(TARGET))
+	$(shell mkdir -p $(TARGET))
+
+fresh: clean clear_screen
+
+build: 
 	$(foreach path,$(MODULE_SRC),$(shell mkdir -p $(shell dirname $(patsubst $(MODULE_SOURCE)/%,$(MODULE_OBJECTS)/%,$(path)))))
 	$(foreach path,$(MODULE_SRC),$(shell $(CC) $(CFLAGS) -I$(MODULE_INCLUDE) -I$(PLATFORM_INCLUDE) -x c++ -c $(path) -o $(patsubst $(MODULE_SOURCE)/%,$(MODULE_OBJECTS)/%,$(path))))
 	
 	$(foreach path,$(PLATFORM_SRC),$(shell mkdir -p $(shell dirname $(patsubst $(PLATFORM_SOURCE)/%,$(PLATFORM_OBJECTS)/%,$(path)))))
 	$(foreach path,$(PLATFORM_SRC),$(shell $(CC) $(CFLAGS) -I$(MODULE_INCLUDE) -I$(PLATFORM_INCLUDE) -x c++ -c $(path) -o $(patsubst $(PLATFORM_SOURCE)/%,$(PLATFORM_OBJECTS)/%,$(path))))
 	
-	$(shell mkdir -p $(TARGET))
 	$(shell $(CC) $(CFLAGS) -o $(TARGET)/app $(OBJ))
 
-
-
+run: fresh build
+ifeq ($(PLATFORM), windows)
+	$(shell $(TARGET)/app.exe)
+endif

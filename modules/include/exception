@@ -1,7 +1,7 @@
 /* vim: set ft=cpp: */ 
 #pragma once
 
-namespace exception 
+namespace helix::exception 
 {
 	struct exception 
 	{
@@ -16,6 +16,10 @@ namespace exception
 	};
 	
 	struct system_error : exception
+	{
+	};
+	
+	struct bad_access : exception
 	{
 	};
 }

@@ -1,0 +1,108 @@
+/* vim: set ft=cpp: */
+#pragma once
+
+#include <prelude>
+
+namespace helix 
+{
+	class bitset;
+
+	class bitset_ref
+	{
+		public:
+			bitset_ref(bitset& set, usize index);
+
+			bitset_ref& operator =(bool value);
+
+			operator bool() const;
+		private:
+			bitset& set; 
+			usize index;
+	};
+
+	class bitset
+	{
+		const usize BITS_PER_ITEM = 32;
+	public:
+
+		bitset()
+		{	
+		}
+
+		bitset(const bitset& other) : 
+			len(other.len),
+			buffer(other.buffer)
+		{
+		}
+
+		auto length() const -> usize
+		{
+			return this->len;
+		}
+
+		auto operator [](usize index) -> bitset_ref
+		{
+			return bitset_ref(*this, index);
+		}
+
+		operator u32*() const
+		{
+			return static_cast<u32*>(this->buffer);
+		}
+
+		operator u32 const*() const
+		{
+			return static_cast<u32 const*>(this->buffer);
+		}
+
+	private:
+		usize len;
+		vec<u32> buffer;
+
+		auto set(usize index, bool value)
+		{
+			usize item = index / BITS_PER_ITEM;
+
+			if(index >= this->len)
+			{
+				this->len = index;
+				this->buffer.resize(item + 1);
+			}
+
+			usize bit = index % BITS_PER_ITEM;
+
+			if(value) {
+				this->buffer[item] |= 1 << bit;
+			} else {
+				this->buffer[item] &= ~(1 << bit);
+			}
+		}
+
+		auto get(usize index) -> bool
+		{
+			usize item = index / BITS_PER_ITEM;
+			usize bit = index % BITS_PER_ITEM;
+
+			return (this->buffer[item] & (1 << bit)) != 0;
+		}
+
+		friend class bitset_ref;
+	};
+
+	bitset_ref::bitset_ref(bitset& set, usize index) :
+		set(set),
+		index(index)
+	{
+	}
+
+	bitset_ref& bitset_ref::operator =(bool value) 
+	{
+		this->set.set(this->index, value);
+		return *this;
+	}
+
+	bitset_ref::operator bool() const
+	{
+		return this->set.get(this->index);
+	}
+}
