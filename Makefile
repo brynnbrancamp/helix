@@ -5,9 +5,10 @@ CC = g++
 
 CFLAGS = -ggdb -Wall -lKernel32 -Wl,-subsystem,console
 
+PROJECT = helix
 PLATFORM = windows
 
-ROOT = C:/Users/Brynn/Dev/hexane
+ROOT = C:/Users/Brynn/Dev/$(PROJECT)
 
 OBJECTS = $(ROOT)/objects
 MOD = $(ROOT)/modules
@@ -48,9 +49,9 @@ build:
 	$(foreach path,$(PLATFORM_SRC),$(shell mkdir -p $(shell dirname $(patsubst $(PLATFORM_SOURCE)/%,$(PLATFORM_OBJECTS)/%,$(path)))))
 	$(foreach path,$(PLATFORM_SRC),$(shell $(CC) $(CFLAGS) -I$(MODULE_INCLUDE) -I$(PLATFORM_INCLUDE) -x c++ -c $(path) -o $(patsubst $(PLATFORM_SOURCE)/%,$(PLATFORM_OBJECTS)/%,$(path))))
 	
-	$(shell $(CC) $(CFLAGS) -o $(TARGET)/app $(OBJ))
+	$(shell $(CC) $(CFLAGS) -o $(TARGET)/$(PROJECT) $(OBJ))
 
 run: fresh build
 ifeq ($(PLATFORM), windows)
-	$(shell $(TARGET)/app.exe)
+	$(shell $(TARGET)/$(PROJECT).exe)
 endif
