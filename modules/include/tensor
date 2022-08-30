@@ -236,27 +236,21 @@ namespace helix
 	}
 
 	//USEFUL SHORT NAMES
-	typedef tensor<f32, 2, 2> f32m2;
+	template<typename data = f32>
+	using m2 = tensor<data, 2, 2>;
 
-	typedef tensor<f32, 3, 3> f32m3;
+	template<typename data = f32>
+	using m3 = tensor<data, 3, 3>;
 
-	typedef tensor<f32, 4, 4> f32m4;
+	template<typename data = f32>
+	using m4 = tensor<data, 4, 4>;
 
-	typedef tensor<f32, 2> f32v2;
+	template<typename data = f32>
+	using v2 = tensor<data, 2>;
 
-	typedef tensor<f32, 3> f32v3;
+	template<typename data = f32>
+	using v3 = tensor<data, 3>;
 
-	typedef tensor<f32, 4> f32v4;
-
-	typedef f32m2 m2;
-
-	typedef f32m3 m3;
-
-	typedef f32m4 m4;
-
-	typedef f32v2 v2;
-
-	typedef f32v3 v3;
-
-	typedef f32v4 v4;
+	template<typename data = f32>
+	using v4 = tensor<data, 4>;
 }

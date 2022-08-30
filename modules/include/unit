@@ -1,139 +1,138 @@
 /* vim: set ft=cpp: */
 #pragma once
 
-#include <prelude>
+#include <primitive>
+#include <traits>
 
-//length
-//mass
-//time
-//current
-//temperature
-//substance
-//luminosity
-template
-<
-	template<isize... dimensions>,
-	typename = enable_if<sizeof...(dimensions) == 7>
->
-struct unit 
+namespace helix
 {
-};
-
-namespace units
-{
-	using length = 		unit<1, 0, 0, 0, 0, 0, 0>
-	using mass = 		unit<0, 1, 0, 0, 0, 0, 0>
-	using time = 		unit<0, 0, 1, 0, 0, 0, 0>
-	using current = 	unit<0, 0, 0, 1, 0, 0, 0>
-	using temperature = 	unit<0, 0, 0, 0, 1, 0, 0>
-	using substance = 	unit<0, 0, 0, 0, 0, 1, 0>
-	using luminosity = 	unit<0, 0, 0, 0, 0, 0, 1>
-	using frequency = 	unit<0, 0,-1, 0, 0, 0, 0>
-	using velocity = 	unit<1, 0,-1, 0, 0, 0, 0>
-	using acceleration = 	unit<1, 0,-2, 0, 0, 0, 0>
-	using area = 		unit<2, 0, 0, 0, 0, 0, 0>
-	using density = 	unit<-3,1, 0, 0, 0, 0, 0>
-	using force = 		unit<1, 1,-2, 0, 0, 0, 0>
-	using heat =  		unit<2, 1,-2, 0, 0, 0, 0>
-	using work = 		heat;
-	using potential = 	unit<2, 1,-2, 1, 0, 0, 0>
-	//electromagnetic frequency
-	using emf = 		potential;
-	using pressure = 	unit<-1,1,-2, 0, 0, 0, 0>
-}
-
-template<typename data, template<template<isize... a_powers>> a>
-class quantity
-{
-private:
-	data val;
-
-	operator data() const
+	//length
+	//mass
+	//time
+	//current
+	//temperature
+	//substance
+	//luminosity
+	template<isize... dimension>
+	struct unit 
 	{
-		return this->val;
+	};
+
+	namespace units
+	{
+		using length = 		unit<1, 0, 0, 0, 0, 0, 0>;
+		using mass = 		unit<0, 1, 0, 0, 0, 0, 0>;
+		using time = 		unit<0, 0, 1, 0, 0, 0, 0>;
+		using current = 	unit<0, 0, 0, 1, 0, 0, 0>;
+		using temperature = 	unit<0, 0, 0, 0, 1, 0, 0>;
+		using substance = 	unit<0, 0, 0, 0, 0, 1, 0>;
+		using luminosity = 	unit<0, 0, 0, 0, 0, 0, 1>;
+		using frequency = 	unit<0, 0,-1, 0, 0, 0, 0>;
+		using velocity = 	unit<1, 0,-1, 0, 0, 0, 0>;
+		using acceleration = 	unit<1, 0,-2, 0, 0, 0, 0>;
+		using area = 		unit<2, 0, 0, 0, 0, 0, 0>;
+		using density = 	unit<-3,1, 0, 0, 0, 0, 0>;
+		using force = 		unit<1, 1,-2, 0, 0, 0, 0>;
+		using heat =  		unit<2, 1,-2, 0, 0, 0, 0>;
+		using work = 		heat;
+		using potential = 	unit<2, 1,-2, 1, 0, 0, 0>;
+		//electromagnetic frequency
+		using emf = 		potential;
+		using pressure = 	unit<-1,1,-2, 0, 0, 0, 0>;
 	}
 
-	quantity<data, a>& operator =(data val)
+	template<typename data, template<isize... dimension> typename a>
+	class quantity
 	{
-		this->val = val;
+	private:
+		data val;
+
+		operator data() const
+		{
+			return this->val;
+		}
+
+		quantity<data, a>& operator =(data val)
+		{
+			this->val = val;
+			return *this;
+		}
+	};
+
+	template
+	<
+		typename data,
+		template<isize... a_dimension> typename a,
+		template<isize... b_dimension> typename b,
+	>
+	auto operator +(quantity<data, unit<a::template a_dimension...>> x, quantity<data, unit<b_dimension...>> y) 
+		-> quantity<data, unit<a_dimension...>
+	{
+		return quantity(x.value() + y.value());	
 	}
-}
 
-template
-<
-	typename data,
-	template<template<isize a_power>...> a,
-	template<template<isize b_power>...> b,
-	typename = enable_if<(a_power == b_power && ...)>
->
-auto operator +(quantity<data, unit<a_power...>> x, quantity<data, unit<b_power...>> y) 
-	-> quantity<data, unit<a_power...>
-{
-	return quantity(x.value() + y.value());	
-}
+	template
+	<
+		typename data,
+		template<isize... a_dimension> typename a,
+		template<isize... b_dimension> typename b,
+	>
+	auto operator -(quantity<data, unit<a_dimension...>> x, quantity<data, unit<b_dimension...>> y) 
+		-> quantity<data, unit<a_dimension...>
+	{
+		return quantity(x.value() - y.value());	
+	}
 
-template
-<
-	typename data,
-	template<template<isize a_power>...> a,
-	template<template<isize b_power>...> b,
-	typename = enable_if<(a_power == b_power && ...)>
->
-auto operator -(quantity<data, unit<a_power...>> x, quantity<data, unit<b_power...>> y) 
-	-> quantity<data, unit<a_power...>
-{
-	return quantity(x.value() - y.value());	
-}
+	template
+	<
+		typename data,
+		template<isize... a_dimension> typename a,
+		template<isize... b_dimension> typename b
+	>
+	auto operator *(quantity<data, unit<a_dimension...>> x, quantity<data, unit<b_dimension...>> y) 
+		-> quantity<data, unit<(a_dimension + b_dimension, ...)>
+	{
+		return quantity(x.value() * y.value());	
+	}
 
-template
-<
-	typename data,
-	template<template<isize a_power>...> a,
-	template<template<isize b_power>...> b,
->
-auto operator *(quantity<data, unit<a_power...>> x, quantity<data, unit<b_power...>> y) 
-	-> quantity<data, unit<(a_power - b_power, ...)>
-{
-	return quantity(x.value() * y.value());	
-}
+	template
+	<
+		typename data,
+		template<isize... a_dimension> typename a,
+		template<isize... b_dimension> typename b
+	>
+	auto operator /(quantity<data, unit<a_dimension...>> x, quantity<data, unit<b_dimension...>> y) 
+		-> quantity<data, unit<(a_dimension - b_dimension, ...)>
+	{
+		return quantity(x.value() / y.value());	
+	}
 
-template
-<
-	typename data,
-	template<template<isize a_power>...> a,
-	template<template<isize b_power>...> b,
->
-auto operator /(quantity<data, unit<a_power...>> x, quantity<data, unit<b_power...>> y) 
-	-> quantity<data, unit<(a_power + b_power, ...)>
-{
-	return quantity(x.value() / y.value());	
+	template<typename data = f32>
+	using meter = quantity<data, units::length>;
+	template<typename data = f32>
+	using kilogram = quantity<data, units::mass>;
+	template<typename data = f32>
+	using second = quantity<data, units::time>;
+	template<typename data = f32>
+	using ampere = quantity<data, units::current>;
+	template<typename data = f32>
+	using kelvin = quantity<data, units::temperature>;
+	template<typename data = f32>
+	using mole = quantity<data, units::substance>;
+	template<typename data = f32>
+	using candela = quantity<data, units::luminosity>;
+	template<typename data = f32>
+	using hertz = quantity<data, units::frequency>;
+	template<typename data = f32>
+	using newton = quantity<data, units::force>;
+	template<typename data = f32>
+	using joule = quantity<data, units::heat>; //same for work
+	template<typename data = f32>
+	using volt = quantity<data, units::potential>; //same for emf
+	template<typename data = f32>
+	using pascal = quantity<data, units::pressure>;
+	template<typename data = f32>
+	using meter_per_second = quantity<data, units::velocity>;
+	template<typename data = f32>
+	using kilogram_per_cubic_meter = quantity<data, units::density>;
 }
-
-template<typename data = f32>
-using meter = quantity<data, units::length>;
-template<typename data = f32>
-using kilogram = quantity<data, units::mass>;
-template<typename data = f32>
-using second = quantity<data, units::time>;
-template<typename data = f32>
-using ampere = quantity<data, units::current>;
-template<typename data = f32>
-using kelvin = quantity<data, units::temperature>;
-template<typename data = f32>
-using mole = quantity<data, units::substance>;
-template<typename data = f32>
-using candela = quantity<data, units::luminosity>;
-template<typename data = f32>
-using hertz = quantity<data, units::frequency>;
-template<typename data = f32>
-using newton = quantity<data, units::force>;
-template<typename data = f32>
-using joule = quantity<data, units::heat>; //same for work
-template<typename data = f32>
-using volt = quantity<data, units::potential>; //same for emf
-template<typename data = f32>
-using pascal = quantity<data, units::pressure>;
-template<typename data = f32>
-using meter_per_second = quantity<data, units::velocity>;
-template<typename data = f32>
-using kilogram_per_cubic_meter = quantity<data, units::density>;

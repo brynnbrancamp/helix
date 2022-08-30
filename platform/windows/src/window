@@ -117,8 +117,8 @@ namespace helix
 			 0,
 			 0,
 			 0,
-			 static_cast<i32>(resolution.access<0>()),
-			 static_cast<i32>(resolution.access<1>()),
+			 static_cast<i32>(get<0>(resolution)),
+			 static_cast<i32>(get<1>(resolution)),
 			 SWP_NOMOVE
 			);
 		return *this;

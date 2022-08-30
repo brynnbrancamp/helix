@@ -71,10 +71,10 @@ namespace helix
 		}
 	}
 
-	template<typename target, typename head, typename... tail>
-	constexpr usize contains()
+	template<typename target, typename... pack>
+	constexpr bool contains()
 	{
-		return eq<target, head> || contains<target, tail...>();
+		return (eq<target, pack> || ...);
 	}
 
 	template<usize index, typename... pack>

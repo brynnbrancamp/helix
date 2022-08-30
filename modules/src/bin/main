@@ -10,14 +10,6 @@ using namespace helix;
 
 extern "C" auto main(i32 argc, i8* argv[]) -> i32
 {
-	second delta_time = 0.2f;
-
-	v3<meter> distance;
-
-	v3<meters_per_second> velocity(5.0f, 2.0f, -14.0f);
-
-	distance += velocity * delta_time;
-
 	window main_window;
 
 	main_window

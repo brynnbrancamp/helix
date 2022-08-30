@@ -60,6 +60,12 @@ namespace helix
 		}
 	};
 
+	template<typename...>
+	class tuple;
+
+	template<usize i, typename... data>
+	auto get(tuple<data...>& x) -> index_type<i, data...>&;
+
 	template<typename... data>
 	class tuple : public tuple_data<0, data...>
 	{
@@ -78,13 +84,6 @@ namespace helix
 		{
 		}
 
-		template<usize i>
-		auto access() -> index_type<i, data...>&
-		{
-			using self = self_index<i>;
-			return this->self::value;
-		};
-
 		template<typename... other>
 		tuple(tuple<other...> val)
 		{
@@ -96,9 +95,16 @@ namespace helix
 			);
 			[&]<usize... i>(seq<i...>)
 			{
-				((access<i>() = val.template access<i>()), ...);
+				((get<i>(*this) = get<i>(val)), ...);
 			}
 			(make_seq<sizeof...(data)>{});
 		}
+	};
+	
+	template<usize i, typename... data>
+	auto get(tuple<data...>& x) -> index_type<i, data...>&
+	{
+		using self = typename tuple<data...>::self_index<i>;
+		return static_cast<self*>(&x)->value;
 	};
 }

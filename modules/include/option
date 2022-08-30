@@ -7,6 +7,7 @@ namespace helix
 	template<typename data>
 	class option
 	{
+	public:
 		option()
 		{
 		}
@@ -29,6 +30,14 @@ namespace helix
 		{
 		}
 
+		~option()
+		{
+			if(this->some)
+			{
+				this->value.~data();
+			}
+		}
+
 		auto is_some() -> bool
 		{
 			return this->some;
@@ -39,7 +48,7 @@ namespace helix
 			return !this->some;
 		}
 
-		auto unwrap() const -> data 
+		auto unwrap() -> data 
 		{
 			if(this->is_some())
 			{
@@ -52,7 +61,7 @@ namespace helix
 			}
 		}
 
-		auto unwrap_or(data other) const -> data
+		auto unwrap_or(data other) -> data
 		{
 			return this->is_some() ? this->unwrap() : other;	
 		}
@@ -71,7 +80,12 @@ namespace helix
 		union 
 		{
 			data value;
-			u8 bytes[sizeof(data)];
 		};
 	};
+
+	template<typename visitor, typename data>
+	void visit(visitor fn, option<data>& opt)
+	{
+		visit(fn, opt.unwrap());
+	}
 }
