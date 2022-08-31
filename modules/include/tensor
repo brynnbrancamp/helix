@@ -2,6 +2,7 @@
 #pragma once
 
 #include <prelude>
+#include <traits>
 
 namespace helix
 {
@@ -18,6 +19,16 @@ namespace helix
 			data{}
 		{
 			
+		}
+		
+		template
+		<
+			typename... x,
+			typename = enable_if<any<x...>>
+		>
+		tensor(x... value) : 
+			data{value...}
+		{
 		}
 
 		tensor(tensor<num, order...> data[size]) :

@@ -86,6 +86,6 @@ namespace helix
 	template<typename num>
 	auto next_power_of_two(num x) -> num
 	{
-		return pow(2, ceil(log(x)));
+		return pow(2, ceil(log(x) / log(2)));
 	}
 }

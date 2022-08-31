@@ -8,28 +8,23 @@ namespace helix
 	class option
 	{
 	public:
-		option()
+		option() :
+			some(false)
 		{
 		}
-		
-		option(data value) :
-			some(true),
-			value(value)
-		{
-		}
-		
+	
 		option(const data& value) :
 			some(true),
 			value(value)
 		{
 		}
 		
-		option(data&& value) :
-			some(true),
-			value(move(value))
+		option(const option& other) : 
+			some(true), 
+			value(other.value)
 		{
 		}
-
+		
 		~option()
 		{
 			if(this->some)
@@ -48,12 +43,12 @@ namespace helix
 			return !this->some;
 		}
 
-		auto unwrap() -> data 
+		auto unwrap() -> data&& 
 		{
 			if(this->is_some())
 			{
 				this->some = false;
-				return this->value;
+				return move(this->value);
 			}
 			else
 			{
@@ -61,9 +56,9 @@ namespace helix
 			}
 		}
 
-		auto unwrap_or(data other) -> data
+		auto unwrap_or(data other) -> data&&
 		{
-			return this->is_some() ? this->unwrap() : other;	
+			return this->is_some() ? this->unwrap() : move(other);	
 		}
 
 		auto operator =(data value) -> option<data>&
@@ -82,10 +77,13 @@ namespace helix
 			data value;
 		};
 	};
-
+	
 	template<typename visitor, typename data>
-	void visit(visitor fn, option<data>& opt)
+	void visit(visitor fn, option<data>&& opt)
 	{
+		if(opt.is_none())
+			return;
+
 		visit(fn, opt.unwrap());
 	}
 }

@@ -1,11 +1,114 @@
 /* vim: set ft=cpp: */
 
 #include <window>
+#include <tensor>
 
 #include <Windows.h>
 
 namespace helix
 {
+	static vec<window_event> event_buffer;
+
+	LRESULT wnd_proc(HWND hwnd, UINT msg, WPARAM w_param, LPARAM l_param)
+	{
+		switch(msg)
+		{
+		case WM_CLOSE:
+		{
+			event_buffer.push(window_event(window_event_close_requested()));
+
+			return true;
+		}
+		case WM_KEYDOWN:
+		{
+			option<key_code> key = convert_native_code(w_param);
+			
+			if(key.is_none())
+				return true;
+			
+			event_buffer.push(window_event(window_event_key {
+				.pressed = true,
+				.key = key.unwrap()
+			}));
+
+			return true;
+		}
+		case WM_KEYUP:
+		{
+			option<key_code> key = convert_native_code(w_param);
+			
+			if(key.is_none())
+				return true;
+
+			event_buffer.push(window_event(window_event_key {
+				.pressed = false,
+				.key = key.unwrap()
+			}));
+
+			return true;
+		}
+		case WM_MOVE:
+		{
+			event_buffer.push(window_event(window_event_pointer {
+				.position = v2<usize>
+				(
+					static_cast<usize>(LOWORD(l_param)), 
+					static_cast<usize>(HIWORD(l_param))
+				)
+			}));
+
+			return true;
+		}
+		case WM_SETFOCUS:
+		{
+			event_buffer.push(window_event(window_event_focus {
+				.active = true
+			}));
+
+			return true;
+		}
+		case WM_KILLFOCUS:
+		{
+			event_buffer.push(window_event(window_event_focus {
+				.active = false
+			}));
+
+			return true;
+		}
+		case WM_SIZE:
+		{
+			event_buffer.push(window_event(window_event_resize {
+				.resolution = v2<usize>
+				(
+					static_cast<usize>(LOWORD(l_param)), 
+					static_cast<usize>(HIWORD(l_param))
+				)
+			}));
+
+			return true;
+		}
+		case WM_SIZING:
+		{
+			RECT const* client_area = reinterpret_cast<RECT const*>(l_param);
+			event_buffer.push(window_event(window_event_resize {
+				.resolution = v2<usize>
+				(
+					static_cast<usize>(client_area->right - client_area->left), 
+					static_cast<usize>(client_area->bottom - client_area->top)
+				)
+			}));
+
+			return true;
+		}
+		case WM_DESTROY:
+		{
+			PostQuitMessage(0);
+		}
+		}
+
+		return DefWindowProcA(hwnd, msg, w_param, l_param);
+	}
+
 	struct window_data
 	{
 		HWND hwnd;
@@ -20,9 +123,9 @@ namespace helix
 
 		const i8 class_name[] = "Helix";
 
-		WNDCLASS wc = {};
+		WNDCLASS wc = { sizeof(WNDCLASS) };
 
-		wc.lpfnWndProc = DefWindowProcA;
+		wc.lpfnWndProc = wnd_proc;
 		wc.lpszClassName = class_name;
 
 		RegisterClass(&wc);
@@ -56,6 +159,24 @@ namespace helix
 		DestroyWindow(this->data->hwnd);
 
 		delete this->data;
+	}
+
+	auto window::poll() -> option<window_event>
+	{
+		MSG msg = {};
+
+		while(PeekMessageA(&msg, this->data->hwnd, 0, 0, PM_REMOVE))
+		{
+			TranslateMessage(&msg);
+			DispatchMessageW(&msg);
+		}
+
+		if(event_buffer.length() == 0)
+		{
+			return option<window_event>();
+		}
+
+		return option(event_buffer.pop());
 	}
 
 	auto window::set_visible(bool toggle) -> window&
@@ -109,16 +230,17 @@ namespace helix
 		return *this;
 	}
 
-	auto window::set_resolution(tuple<usize, usize> resolution) -> window&
+	auto window::set_resolution(v2<usize> resolution) -> window&
 	{
+		
 		SetWindowPos
 			(
 			 this->data->hwnd,
 			 0,
 			 0,
 			 0,
-			 static_cast<i32>(get<0>(resolution)),
-			 static_cast<i32>(get<1>(resolution)),
+			 static_cast<i32>(resolution[0]),
+			 static_cast<i32>(resolution[1]),
 			 SWP_NOMOVE
 			);
 		return *this;
@@ -145,17 +267,17 @@ namespace helix
 		return str;
 	}
 
-	auto window::get_resolution() -> tuple<usize, usize>
+	auto window::get_resolution() -> v2<usize>
 	{
 		RECT size;
 
 		GetClientRect(this->data->hwnd, &size);
 
-		tuple<usize, usize> resolution
-			(
-			 static_cast<usize>(size.right),
-			 static_cast<usize>(size.bottom)
-			);
+		v2<usize> resolution
+		(
+			static_cast<usize>(size.right),
+			static_cast<usize>(size.bottom)
+		);
 
 		return resolution;
 	}

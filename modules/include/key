@@ -1,0 +1,20 @@
+/* vim: set ft=cpp: */
+#pragma once
+
+#include <prelude>
+
+namespace helix
+{
+	enum key_code : u32
+	{
+		w,
+		a,
+		s,
+		d,
+		shift,
+		space,
+		escape
+	};
+
+	option<key_code> convert_native_code(u32 native_code);
+}

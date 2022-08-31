@@ -1,0 +1,32 @@
+/* vim: set ft=cpp: */
+
+#include <key>
+
+#include <Windows.h>
+#include <Winuser.h>
+
+namespace helix
+{
+	option<key_code> convert_native_code(u32 native_code)
+	{
+		switch(native_code)
+		{
+			case 0x57:
+				return option(key_code::w);
+			case 0x41:
+				return option(key_code::a);
+			case 0x53:
+				return option(key_code::s);
+			case 0x44:
+				return option(key_code::d);
+			case VK_SHIFT:
+				return option(key_code::shift);
+			case VK_SPACE:
+				return option(key_code::space);
+			case VK_ESCAPE:
+				return option(key_code::escape);
+		}
+
+		return option<key_code>();
+	}
+}

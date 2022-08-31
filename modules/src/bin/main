@@ -5,69 +5,60 @@
 #include <io>
 #include <window>
 #include <bitset>
+#include <variant>
 
 using namespace helix;
 
-extern "C" auto main(i32 argc, i8* argv[]) -> i32
+i32 main(i32 argc, i8* argv[])
 {
 	window main_window;
 
 	main_window
 		.set_title("Quasi")
-		.set_resolution(tuple(960, 540))
+		.set_resolution(v2<usize>(960, 540))
 		.set_visible(true);
 
+	bool run = true;
 
-	while(true) {
+	while(run) {
 		//handle window events
-		auto event = main_window.poll();
+		option<window_event> event = main_window.poll();
 
 		visit
 		(
-			[](auto&& event)
+			[&run](auto&& event)
 			{
 				using type = decay<decltype(event)>;
 
-				if constexpr(eq<type, window_event_close_requested>)
+				if(eq<type, window_event_close_requested>)
 				{
+					run = false;
+					out << "close" << endl;
 				}
 				
-				if constexpr(eq<type, window_event_key>)
+				if(eq<type, window_event_key>)
 				{
+					out << "key" << endl;
 				}
 				
-				if constexpr(eq<type, window_event_pointer>)
+				if(eq<type, window_event_pointer>)
 				{
+					out << "pointer" << endl;
 				}
 				
-				if constexpr(eq<type, window_event_focus>)
+				if(eq<type, window_event_focus>)
 				{
+					out << "focus" << endl;
 				}
 				
-				if constexpr(eq<type, window_event_resize>)
+				if(eq<type, window_event_resize>)
 				{
+					out << "resize" << endl;
 				}
 			},	
-			event
+			move(event)
 		);
 	}
 
-	/*out << "Hello, world!" << endl;
-
-	  err << "Is this thing on?" << endl;
-
-	  f32 f = 420.69;
-
-	  out << "Here is a floating point number: " << f << endl; 
-
-	  out << "strlen(\"1234\") = " << strlen("1234") << endl;
-
-	  out << "Please input chars:" << endl;
-
-	  string data;
-
-	  in >> data;
-
-	  out << "you wrote: " << data << endl;
-	  */
+	return 0;
 }

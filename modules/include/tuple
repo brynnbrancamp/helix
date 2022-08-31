@@ -105,6 +105,6 @@ namespace helix
 	auto get(tuple<data...>& x) -> index_type<i, data...>&
 	{
 		using self = typename tuple<data...>::self_index<i>;
-		return static_cast<self*>(&x)->value;
+		return static_cast<self>(x)->value;
 	};
 }

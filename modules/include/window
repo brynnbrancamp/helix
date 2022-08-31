@@ -1,6 +1,9 @@
 /* vim: set ft=cpp: */
 
 #include <prelude>
+#include <tensor>
+#include <variant>
+#include <key>
 
 namespace helix
 {
@@ -12,27 +15,32 @@ namespace helix
 
 	struct window_event_key
 	{
+		bool pressed;
+		key_code key;
 	};
 
 	struct window_event_pointer
 	{
+		v2<usize> position;
 	};
 
 	struct window_event_focus
 	{
+		bool active;
 	};
 
 	struct window_event_resize
 	{
+		v2<usize> resolution;
 	};
 
 	using window_event = variant
 	<
-	window_event_close_requested,
-	window_event_key,
-	window_event_pointer,
-	window_event_focus,
-	window_event_resize
+		window_event_close_requested,
+		window_event_key,
+		window_event_pointer,
+		window_event_focus,
+		window_event_resize
 	>;
 
 	class window
@@ -49,12 +57,12 @@ namespace helix
 		auto set_visible(bool toggle) -> window&;
 		auto set_fullscreen(bool toggle) -> window&;
 		auto set_title(string str) -> window&;
-		auto set_resolution(tuple<usize, usize> resolution) -> window&;
+		auto set_resolution(v2<usize> resolution) -> window&;
 
 		auto get_visible() -> bool;
 		auto get_fullscreen() -> bool;
 		auto get_title() -> string;
-		auto get_resolution() -> tuple<usize, usize>;
+		auto get_resolution() -> v2<usize>;
 	private:
 		bool visible;
 		bool fullscreen;

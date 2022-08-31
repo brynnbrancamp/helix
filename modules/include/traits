@@ -249,7 +249,7 @@ namespace helix
 	using add_lvalue_reference = typename add_lvalue_reference_t<data>::type;
 
 	template<class data> 
-	add_rvalue_reference_t<data> declval() noexcept;
+	add_rvalue_reference<data> declval() noexcept;
 
 	template<typename data>
 	struct decay_t {
@@ -259,4 +259,17 @@ namespace helix
 
 	template<typename data>
 	using decay = typename decay_t<data>::type;
+	
+	template<typename... data>
+	struct any_t : public true_t
+	{
+	};
+
+	template<>
+	struct any_t<> : public false_t
+	{
+	};
+
+	template<typename... data>
+	static inline constexpr bool any = any_t<data...>::value;
 }

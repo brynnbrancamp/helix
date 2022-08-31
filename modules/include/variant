@@ -1,38 +1,33 @@
 /* vim: set ft=cpp: */
+#pragma once
 
+#include <primitive>
 #include <traits>
 
 namespace helix
 {
 	template<typename...>
-	struct variant;
+	class variant;
 
 	template<usize, typename...>
-	struct variadic_union;
+	union variadic_union;
 
 	template<usize index, typename head>
-	struct variadic_union<index, head>
+	union variadic_union<index, head>
 	{
-		union
+		usize type;
+		u8 bytes[sizeof(usize) + sizeof(head)];
+		
+		variadic_union()
 		{
-			alignas(head) const usize type;
-			alignas(head) unsigned char bytes[sizeof(usize) + sizeof(head)];
-		};
-
-		variadic_union(head value)
+		}
+		
+		variadic_union(const head& value)
 		{
 			this->type = index;
 			reinterpret_cast<head*>(sizeof(usize) + this->bytes)[0] = value;
 		}
-
-		variadic_union(const head& value) : variadic_union(value)
-		{
-		}
 		
-		variadic_union(head&& value) : variadic_union(move(value))
-		{
-		}
-
 		~variadic_union()
 		{
 			if(index == this->type)
@@ -55,46 +50,40 @@ namespace helix
 	};
 
 	template<usize index, typename head, typename... tail>
-	struct variadic_union<index, head, tail...>
+	union variadic_union<index, head, tail...>
 	{
-		union
+		using inner = variadic_union<index + 1, tail...>;
+
+		usize type;
+		u8 bytes[sizeof(usize) + sizeof(head)];
+		inner rest;
+	
+		variadic_union()
 		{
-			alignas(head) const usize type;
-			alignas(head) unsigned char bytes[sizeof(usize) + sizeof(head)];
-			variadic_union<index + 1, tail...> rest;
-		};
-		
+		}
+
 		template
 		<
 			typename data,
 			typename = enable_if<eq<data, head> || contains<data, tail...>()>
 		>
-		variadic_union(data value)
-
+		variadic_union(const data& value)
 		{
 			this->type = type_index<data, head, tail...>();
 			reinterpret_cast<data*>(sizeof(usize) + this->bytes)[0] = value;
 		}
-		
-		template
-		<
-			typename data,
-			typename = enable_if<eq<data, head> || contains<data, tail...>()>
-		>
-		variadic_union(const data& value) : variadic_union(value)
-		{
-		}
 
-		template
-		<
-			typename data,
-			typename = enable_if<eq<data, head> || contains<data, tail...>()>
-		>
-		variadic_union(data&& value) : variadic_union(move(value))
+		~variadic_union()
 		{
+			if(index == this->type)
+			{
+				reinterpret_cast<head*>(sizeof(usize) + this->bytes)->~head();
+			}
+			else
+			{
+				this->rest.~inner();
+			}
 		}
-
-		~variadic_union();
 
 		template<typename visitor, typename... x>
 		friend void visit(visitor, variant<x...>&&);	
@@ -104,7 +93,7 @@ namespace helix
 		{
 			if(index == this->type) 
 			{
-				fn(reinterpret_cast<head*>(sizeof(usize) + this->bytes)[0]);
+				fn(move(reinterpret_cast<head*>(sizeof(usize) + this->bytes)[0]));
 			}
 			else
 			{
@@ -113,32 +102,27 @@ namespace helix
 		}
 	};
 		
-	template<usize index, typename head, typename... tail>
-	variadic_union<index, head, tail...>::~variadic_union()
-	{
-		usize type = reinterpret_cast<usize*>(this->bytes)[0];
-		if(index == type)
-		{
-			reinterpret_cast<head*>(sizeof(usize) + this->bytes)->~head();
-		}
-		else
-		{
-			this->rest.~variadic_union<index + 1, tail...>();
-		}
-	}
 	
 	template<typename... data>
 	class variant
 	{	
 	public:
+		variant()
+		{
+		}
 		template
 		<
 			typename item, 
 			typename = enable_if<contains<item, data...>()>
 		>
-		variant(const item& value) : variant(value) 
+		variant(const item& value) 
 		{
-			this->value = variadic_union(value);
+			this->value = variadic_union<0, data...>(value);
+		}
+
+		variant(const variant& other)
+			: value(other.value)
+		{
 		}
 		
 		~variant()
@@ -149,10 +133,7 @@ namespace helix
 		template<typename visitor, typename... x>
 		friend void visit(visitor, variant<x...>&&);
 	private:
-		union 
-		{
-			variadic_union<0, data...> value;
-		};
+		variadic_union<0, data...> value;
 	};
 
 	template<typename visitor, typename... data>
