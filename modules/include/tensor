@@ -35,7 +35,7 @@ namespace helix
 			data(data)
 		{
 		}
-
+		
 		auto operator [](usize index) -> tensor<num, order...>&
 		{
 			if(index >= size)
@@ -44,8 +44,9 @@ namespace helix
 			}
 
 			return this->data[index];
-		
-		auto operator [](usize index) -> tensor<num, order...> const&
+		}
+
+		auto operator [](usize index) const -> tensor<num, order...> const&
 		{
 			if(index >= size)
 			{
@@ -54,7 +55,7 @@ namespace helix
 
 			return this->data[index];
 		}
-		}
+		
 	private:
 		tensor<num, order...> data[size];
 	};
@@ -71,8 +72,8 @@ namespace helix
 			data(data)
 		{
 		}
-
-		operator num()
+	
+		operator num() const
 		{
 			return this->data;
 		}

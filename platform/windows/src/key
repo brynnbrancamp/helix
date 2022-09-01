@@ -12,19 +12,19 @@ namespace helix
 		switch(native_code)
 		{
 			case 0x57:
-				return option(key_code::w);
+				return option<key_code>(key_code::w);
 			case 0x41:
-				return option(key_code::a);
+				return option<key_code>(key_code::a);
 			case 0x53:
-				return option(key_code::s);
+				return option<key_code>(key_code::s);
 			case 0x44:
-				return option(key_code::d);
+				return option<key_code>(key_code::d);
 			case VK_SHIFT:
-				return option(key_code::shift);
+				return option<key_code>(key_code::shift);
 			case VK_SPACE:
-				return option(key_code::space);
+				return option<key_code>(key_code::space);
 			case VK_ESCAPE:
-				return option(key_code::escape);
+				return option<key_code>(key_code::escape);
 		}
 
 		return option<key_code>();

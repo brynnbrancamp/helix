@@ -1,7 +1,7 @@
 SHELL=/bin/bash
 .SHELLFLAGS := -O extglob -c
 
-CC = g++
+CC = clang++
 
 CFLAGS = -g -O0 -ggdb -Wall -lUser32 -lkernel32
 

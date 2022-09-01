@@ -303,7 +303,7 @@ namespace helix
 			return option<window_event>();
 		}
 
-		return option(event_buffer.pop());
+		return option<window_event>(event_buffer.pop());
 	}
 
 	auto window::center() -> window&

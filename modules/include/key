@@ -5,7 +5,7 @@
 
 namespace helix
 {
-	enum key_code : u32
+	enum class key_code : u32
 	{
 		w,
 		a,
