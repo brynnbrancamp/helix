@@ -1,0 +1,61 @@
+/* vim: set ft=cpp: */
+#pragma once
+
+#include <prelude>
+
+namespace helix
+{
+	template<typename host, typename data>
+	using setter = void(*)(host&, const data&);
+	
+	template<typename host, typename data>
+	using getter = data(*)(host&);
+	
+	template<typename host, typename data, typename setter, typename getter>
+	class property
+	{
+	public:
+		property(host& h, setter set, getter get) :
+			h(h),
+			set(set),
+			get(get)
+		{
+			this->d = get(this->h);
+		}
+
+		~property()
+		{
+			this->set(this->h, this->d);
+		}
+
+		property& operator =(const property& other)
+		{
+			if(this == &other)
+				return *this;
+
+			this->h = other.h;
+			this->d = other.d;
+			this->set = other.set;
+			this->get = other.get;
+
+			return *this;
+		}
+
+		operator data&() {
+			return this->d;
+		}
+
+		property& operator =(const data& value)
+		{
+			this->d = value;
+			this->set(this->h, this->d);
+			return *this;
+		}
+	private:
+		host& h;
+		data d;
+
+		setter set;
+		getter get;
+	};
+}

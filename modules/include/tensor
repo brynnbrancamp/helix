@@ -44,6 +44,16 @@ namespace helix
 			}
 
 			return this->data[index];
+		
+		auto operator [](usize index) -> tensor<num, order...> const&
+		{
+			if(index >= size)
+			{
+				throw exception::out_of_bounds();
+			}
+
+			return this->data[index];
+		}
 		}
 	private:
 		tensor<num, order...> data[size];

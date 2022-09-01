@@ -4,9 +4,24 @@
 #include <tensor>
 #include <variant>
 #include <key>
+#include <property>
 
 namespace helix
 {
+	class window;
+
+	void window_set_visible(window& win, const bool& toggle);
+	void window_set_fullscreen(window& win, const bool& toggle);
+	void window_set_title(window& win, const string& str);
+	void window_set_resolution(window& win, const v2<usize>& resolution);	
+	void window_set_position(window& win, const v2<usize>& position);
+
+	bool window_get_visible(window& win);
+	bool window_get_fullscreen(window& win);
+	string window_get_title(window& win);
+	v2<usize> window_get_resolution(window& win);
+	v2<usize> window_get_position(window& win);
+
 	struct window_data;
 
 	struct window_event_close_requested
@@ -46,6 +61,51 @@ namespace helix
 	class window
 	{
 	public:
+		property
+		<
+			window,
+			bool, 
+			setter<window, bool>, 
+			getter<window, bool>
+		>
+		visible;
+		
+		property
+		<
+			window,
+			bool, 
+			setter<window, bool>, 
+			getter<window, bool>
+		>
+		fullscreen;
+
+		property
+		<
+			window,
+			string, 
+			setter<window, string>, 
+			getter<window, string>
+		>
+		title;
+		
+		property
+		<
+			window,
+			v2<usize>, 
+			setter<window, v2<usize>>, 
+			getter<window, v2<usize>>
+		>
+		resolution;
+
+		property
+		<
+			window,
+			v2<usize>, 
+			setter<window, v2<usize>>, 
+			getter<window, v2<usize>>
+		>
+		position;
+
 		window();	
 		~window();
 
@@ -54,18 +114,19 @@ namespace helix
 
 		auto poll() -> option<window_event>;
 
-		auto set_visible(bool toggle) -> window&;
-		auto set_fullscreen(bool toggle) -> window&;
-		auto set_title(string str) -> window&;
-		auto set_resolution(v2<usize> resolution) -> window&;
+		auto center() -> window&;
+	
+		friend void window_set_visible(window& win, bool const& toggle);
+		friend void window_set_fullscreen(window& win, bool const& toggle);
+		friend void window_set_title(window& win, string const& str);
+		friend void window_set_resolution(window& win, v2<usize> const& resolution);	
+		friend void window_set_position(window& win, v2<usize> const& position);
 
-		auto get_visible() -> bool;
-		auto get_fullscreen() -> bool;
-		auto get_title() -> string;
-		auto get_resolution() -> v2<usize>;
-	private:
-		bool visible;
-		bool fullscreen;
+		friend bool window_get_visible(window& win);
+		friend bool window_get_fullscreen(window& win);
+		friend string window_get_title(window& win);
+		friend v2<usize> window_get_resolution(window& win);
+		friend v2<usize> window_get_position(window& win);
 
 		window_data* data;
 	};

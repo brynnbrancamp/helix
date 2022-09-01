@@ -13,10 +13,10 @@ i32 main(i32 argc, i8* argv[])
 {
 	window main_window;
 
-	main_window
-		.set_title("Quasi")
-		.set_resolution(v2<usize>(960, 540))
-		.set_visible(true);
+	main_window.title = "Quasi";
+	main_window.visible = true;
+	main_window.resolution = v2<usize>(960, 540);
+	main_window.center();
 
 	bool run = true;
 

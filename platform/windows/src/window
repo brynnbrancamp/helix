@@ -7,6 +7,136 @@
 
 namespace helix
 {
+	struct window_data
+	{
+		HWND hwnd;
+		WINDOWPLACEMENT wpc;
+		LONG style;
+		LONG style_ex;
+	};
+
+	void window_set_visible(window& win, bool const& toggle)
+	{
+		ShowWindow(win.data->hwnd, win.visible ? SW_SHOW : SW_HIDE);
+	}
+
+	void window_set_fullscreen(window& win, bool const& toggle)
+	{
+		if(win.fullscreen && !toggle) 
+		{
+			SetWindowLong(win.data->hwnd, GWL_STYLE, win.data->style);
+			SetWindowLong(win.data->hwnd, GWL_EXSTYLE, win.data->style_ex);
+			ShowWindow(win.data->hwnd, SW_SHOWNORMAL);
+			SetWindowPlacement(win.data->hwnd, &win.data->wpc);
+		}
+		else if(!win.fullscreen && toggle)
+		{
+			GetWindowPlacement(win.data->hwnd, &win.data->wpc );
+			if (win.data->style == 0 )
+				win.data->style = GetWindowLong(win.data->hwnd, GWL_STYLE);
+			if (win.data->style_ex == 0 )
+				win.data->style_ex = GetWindowLong(win.data->hwnd, GWL_EXSTYLE);
+
+			LONG new_style =win.data->style;
+			new_style &= ~WS_BORDER;
+			new_style &= ~WS_DLGFRAME;
+			new_style &= ~WS_THICKFRAME;
+
+			LONG new_style_ex = win.data->style_ex;
+			new_style_ex &= ~WS_EX_WINDOWEDGE;
+
+			SetWindowLong(win.data->hwnd, GWL_STYLE, new_style | WS_POPUP);
+			SetWindowLong(win.data->hwnd, GWL_EXSTYLE, new_style_ex | WS_EX_TOPMOST);
+			ShowWindow(win.data->hwnd, SW_SHOWMAXIMIZED);	
+		}
+
+		win.fullscreen = toggle;
+	}
+
+	void window_set_title(window& win, string const& str)
+	{
+		SetWindowTextA(win.data->hwnd, static_cast<i8 const*>(str));
+	}
+
+	void window_set_resolution(window& win, v2<usize> const& resolution)
+	{
+		SetWindowPos
+		(
+		 	win.data->hwnd,
+		 	0,
+		 	0,
+		 	0,
+		 	static_cast<i32>(resolution[0]),
+		 	static_cast<i32>(resolution[1]),
+		 	SWP_NOMOVE
+		);
+	}
+	
+	void window_set_position(window& win, v2<usize> const& position)
+	{
+		SetWindowPos
+		(
+		 	win.data->hwnd,
+		 	0,
+		 	static_cast<i32>(position[0]),
+		 	static_cast<i32>(position[1]),
+		 	0,
+		 	0,
+		 	SWP_NOSIZE
+		);
+	}
+
+	bool window_get_visible(window& win)
+	{
+		return win.visible;
+	}
+
+	bool window_get_fullscreen(window& win)
+	{
+		return win.fullscreen;
+	}
+
+	string window_get_title(window& win)
+	{
+		i8 data[256] = {};
+
+		GetWindowTextA(win.data->hwnd, data, 256);
+
+		string str(data);
+
+		return str;
+	}
+
+	v2<usize> window_get_resolution(window& win)
+	{
+		RECT size;
+
+		GetClientRect(win.data->hwnd, &size);
+
+		v2<usize> resolution
+		(
+			static_cast<usize>(size.right),
+			static_cast<usize>(size.bottom)
+		);
+
+		return resolution;
+	}
+	
+	v2<usize> window_get_position(window& win)
+	{
+		RECT size;
+
+		GetWindowRect(win.data->hwnd, &size);
+
+		v2<usize> position
+		(
+			static_cast<usize>(size.left),
+			static_cast<usize>(size.top)
+		);
+
+		return position;
+	}
+
 	static vec<window_event> event_buffer;
 
 	LRESULT wnd_proc(HWND hwnd, UINT msg, WPARAM w_param, LPARAM l_param)
@@ -109,15 +239,12 @@ namespace helix
 		return DefWindowProcA(hwnd, msg, w_param, l_param);
 	}
 
-	struct window_data
-	{
-		HWND hwnd;
-		WINDOWPLACEMENT wpc;
-		LONG style;
-		LONG style_ex;
-	};
-
-	window::window()
+	window::window() :
+		visible(property<window, bool, setter<window, bool>, getter<window, bool>>(*this, window_set_visible, window_get_visible)),
+		fullscreen(property<window, bool, setter<window, bool>, getter<window, bool>>(*this, window_set_fullscreen, window_get_fullscreen)),
+		title(property<window, string, setter<window, string>, getter<window, string>>(*this, window_set_title, window_get_title)),
+		resolution(property<window, v2<usize>, setter<window, v2<usize>>, getter<window, v2<usize>>>(*this, window_set_resolution, window_get_resolution)),
+		position(property<window, v2<usize>, setter<window, v2<usize>>, getter<window, v2<usize>>>(*this, window_set_position, window_get_position))
 	{
 		this->data = new window_data;
 
@@ -179,106 +306,23 @@ namespace helix
 		return option(event_buffer.pop());
 	}
 
-	auto window::set_visible(bool toggle) -> window&
+	auto window::center() -> window&
 	{
-		this->visible = toggle;
+		RECT screen;
 
-		ShowWindow(this->data->hwnd, this->visible ? SW_SHOW : SW_HIDE);
+		GetWindowRect(GetDesktopWindow(), &screen);
 
-		return *this;
-	}
-
-	auto window::set_fullscreen(bool toggle) -> window&
-	{
-		if(this->fullscreen && !toggle) 
-		{
-			SetWindowLong(this->data->hwnd, GWL_STYLE, this->data->style);
-			SetWindowLong(this->data->hwnd, GWL_EXSTYLE, this->data->style_ex);
-			ShowWindow(this->data->hwnd, SW_SHOWNORMAL);
-			SetWindowPlacement(this->data->hwnd, &this->data->wpc);
-		}
-		else if(!this->fullscreen && toggle)
-		{
-			GetWindowPlacement(this->data->hwnd, &this->data->wpc );
-			if (this->data->style == 0 )
-				this->data->style = GetWindowLong(this->data->hwnd, GWL_STYLE);
-			if (this->data->style_ex == 0 )
-				this->data->style_ex = GetWindowLong(this->data->hwnd, GWL_EXSTYLE);
-
-			LONG new_style =this->data->style;
-			new_style &= ~WS_BORDER;
-			new_style &= ~WS_DLGFRAME;
-			new_style &= ~WS_THICKFRAME;
-
-			LONG new_style_ex = this->data->style_ex;
-			new_style_ex &= ~WS_EX_WINDOWEDGE;
-
-			SetWindowLong(this->data->hwnd, GWL_STYLE, new_style | WS_POPUP);
-			SetWindowLong(this->data->hwnd, GWL_EXSTYLE, new_style_ex | WS_EX_TOPMOST);
-			ShowWindow(this->data->hwnd, SW_SHOWMAXIMIZED);	
-		}
-
-		this->fullscreen = toggle;
-
-		return *this;
-	}
-
-	auto window::set_title(string str) -> window&
-	{
-		SetWindowTextA(this->data->hwnd, static_cast<i8 const*>(str));
-
-		return *this;
-	}
-
-	auto window::set_resolution(v2<usize> resolution) -> window&
-	{
-		
-		SetWindowPos
-			(
-			 this->data->hwnd,
-			 0,
-			 0,
-			 0,
-			 static_cast<i32>(resolution[0]),
-			 static_cast<i32>(resolution[1]),
-			 SWP_NOMOVE
-			);
-		return *this;
-	}
-
-	auto window::get_visible() -> bool
-	{
-		return this->visible;
-	}
-
-	auto window::get_fullscreen() -> bool
-	{
-		return this->fullscreen;
-	}
-
-	auto window::get_title() -> string
-	{
-		i8 data[256] = {};
-
-		GetWindowTextA(this->data->hwnd, data, 256);
-
-		string str(data);
-
-		return str;
-	}
-
-	auto window::get_resolution() -> v2<usize>
-	{
 		RECT size;
 
-		GetClientRect(this->data->hwnd, &size);
+		GetWindowRect(this->data->hwnd, &size);
 
-		v2<usize> resolution
+		this->position = v2<usize>
 		(
-			static_cast<usize>(size.right),
-			static_cast<usize>(size.bottom)
+			(screen.right - screen.left) / 2 - (size.right - size.left) / 2,
+			(screen.bottom - screen.top) / 2 - (size.bottom - size.top) / 2
 		);
 
-		return resolution;
+		return *this;
 	}
+
 }
