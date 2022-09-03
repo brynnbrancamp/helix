@@ -119,8 +119,4 @@ namespace helix
 		
 		memrev(b, str - b);
 	}
-
-	auto string::operator [](usize index) const -> i8& {
-		return this->data[index];
-	}
 }

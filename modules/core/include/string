@@ -29,7 +29,7 @@ namespace helix
 			return this->data.length();
 		}
 
-		string& operator =(const string& other)
+		auto operator =(const string& other) -> string&
 		{
 			if (this == &other)
 				return *this;
@@ -40,6 +40,28 @@ namespace helix
 			return *this;
 		}
 
+		auto operator ==(string const& lhs, string const& rhs) -> bool
+		{
+			if(lhs.length() != rhs.length())
+			{
+				return false;
+			}
+
+			for(usize i = 0; i < lhs.length(); i++)
+			{
+				if(lhs[i] != rhs[i])
+				{
+					return false;
+				}
+			}
+
+			return true;
+		}
+		
+		auto operator [](usize index) const -> i8& 
+		{
+			return this->data[index];
+		}
 
 		operator i8*() const
 		{
@@ -51,7 +73,6 @@ namespace helix
 			return this->data;
 		}
 
-		auto operator [](usize index) const -> i8&;
 	private:
 		vec<i8> data;
 	};

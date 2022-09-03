@@ -1,0 +1,55 @@
+/* vim: set ft=cpp: */
+
+#include <prelude>
+
+using namespace helix;
+
+i32 main(i32 argc, i8* argv[])
+{
+	const string modules = "modules";
+	const string platform = "platform";
+
+	const string target = "target";
+
+	const string windows = "windows";
+
+	const string core = "core";
+	const string vulkan = "vulkan";
+	const string builder = "builder";
+	const string client = "client";
+
+	build_system build;
+
+	build.add_module_directories(modules, platform);
+
+	build.set_target_directory(target);
+
+	build.add_module(windows)
+		.library()
+		.compile();
+
+	build.add_module(core)
+		.library()
+		.add_dependency(windows)
+		.compile();
+
+	build.add_module(vulkan)
+		.library(module_link_dynamic)
+		.add_dependency(core)
+		.compile();
+
+	build.add_module(client)
+		.bin()
+		.add_dependency(core)
+		.add_dependency(vulkan)
+		.compile();
+
+	build.add_module(builder)
+		.bin()
+		.add_dependency(core)
+		.compile();
+
+	build();
+
+	return 0;
+}

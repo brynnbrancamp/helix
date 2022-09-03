@@ -36,9 +36,6 @@ namespace helix
 			}
 		}
 
-		template<typename visitor, typename... x>
-		friend void visit(visitor, variant<x...>&&);
-
 		template<typename visitor>
 		void visit(visitor fn)
 		{
@@ -85,9 +82,6 @@ namespace helix
 			}
 		}
 
-		template<typename visitor, typename... x>
-		friend void visit(visitor, variant<x...>&&);	
-		
 		template<typename visitor>
 		void visit(visitor fn)
 		{

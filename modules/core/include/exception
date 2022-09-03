@@ -22,4 +22,12 @@ namespace helix::exception
 	struct bad_access : exception
 	{
 	};
+	
+	struct missing_dependency : exception
+	{
+	};
+
+	struct circular_dependency : exception
+	{
+	};
 }

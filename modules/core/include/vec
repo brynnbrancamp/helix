@@ -79,6 +79,18 @@ namespace helix
 			return this->data[--this->len];
 		}
 
+		auto remove(usize index)
+		{
+			(*this)[index]~item();
+
+			memcpy(this->data, this->data + 1, --this->len - index);
+		}
+		
+		auto clear()
+		{
+			this->len = 0;
+		}
+
 		auto resize(usize new_length)
 		{
 			this->resize(new_length, item());
@@ -108,7 +120,22 @@ namespace helix
 			}
 		}
 
+		auto search(item const& subject) -> usize
+		{	
+			if(&subject < this->data || &subject > (this->data + this->len))
+			{
+				throw exception::out_of_bounds();
+			}
 
+			usize i = 0;
+			item const& prospect = (*this)[i];
+
+			while(prospect != subject)
+				prospect = (*this)[++i];	
+
+			return i;
+		}
+		
 		auto operator [](usize index) const -> item& 
 		{
 			if(index >= this->len)
@@ -119,10 +146,6 @@ namespace helix
 			return this->data[index];
 		}
 
-		auto clear()
-		{
-			this->len = 0;
-		}
 
 		operator item*() const
 		{

@@ -1,0 +1,238 @@
+/* vim: set ft=cpp: */
+
+#include <prelude>
+
+namespace helix
+{
+	template<typename node>
+	struct dependency_graph {
+		struct edge
+		{
+			usize from;
+			usize to;
+		};
+		
+		vec<runtime::node> nodes;
+		vec<runtime::edge> edges;
+		
+		vec<vec<usize>> in;
+		vec<vec<usize>> out;
+
+		vec<usize> triggered;
+
+		auto add_node(node&& n) -> usize
+		{
+			usize index = this->nodes.length();
+
+			this->nodes.push(n);
+
+			this->in.push(vec<usize>());
+			this->out.push(vec<usize>());
+
+			return index;
+		}
+		
+		auto remove_node(node const& n)
+		{
+			usize x = this->nodes.search(n);
+
+			this->nodes.remove(x);
+			
+			this->in.remove(x);
+			this->out.remove(x);	
+		}
+
+		auto trigger_node(node const& n)
+		{
+			usize x = this->nodes.search(n);
+
+			this->triggered.push(x);
+		}
+		
+		auto calm_node(node const& n)
+		{
+			usize x = this->triggered.search(n);
+
+			this->triggered.remove(x);
+		}
+
+		auto add_edge(node const& from, node const& to)
+		{
+			usize x = this->nodes.search(from);
+			usize y = this->nodes.search(to);
+			
+			this->edges.add({
+				.from = x,
+				.to = y
+			});
+
+			this->in_nodes[y].push(x);
+			this->out_nodes[x].push(y);
+		}
+		
+		auto remove_edge(node const& from, node const& to)
+		{
+			usize x = this->nodes.search(from);
+			usize y = this->nodes.search(to);
+
+			usize i = 0;
+			node const& prospect = this->edges[i];
+
+			while(prospect.from != x && prospect.to != y)
+				prospect = this->edges[++i];
+
+			this->edges.remove(i);
+			
+			usize a = this->in_nodes[y].search(x);
+			usize b = this->out_nodes[x].search(y);
+
+			this->in_nodes[y].remove(a);
+			this->out_nodes[x].remove(b);
+		}
+
+		auto length() -> usize
+		{
+			return this->nodes.length();
+		}
+	}
+
+	enum module_link
+	{
+		module_link_static,
+		module_link_dynamic
+	}
+
+	enum module_load
+	{
+		module_load_cold,
+		module_link_hot
+	}
+
+	enum module_state
+	{
+		module_state_load,
+		module_state_compile,
+	}
+
+	enum module_type
+	{
+		module_type_library,
+		module_type_bin,
+		module_type_target
+	}
+
+	class build_system;
+
+	class build_module
+	{
+	public:
+		auto library(module_load link = module_link_cold) -> build_module&
+		{
+			this->ty = module_type_library;
+			this->link = link;
+
+			return *this;
+		}
+
+		auto bin() -> build_module&
+		{
+			this->ty = module_type_bin;
+			
+			return *this;
+		}
+
+		auto target() -> build_module&
+		{
+			this->ty = module_type_target;
+			
+			return *this;
+		}
+
+		auto dependency(string other) -> build_module&
+		{
+			option<build_module const&> from_opt;
+			option<build_module const&> to_opt;
+
+			for(usize i = 0; i < this->build.length(); i++)
+			{
+				if(this->build[i].name == other)
+				{
+					from_opt = this->build[i];	
+				}
+				
+				if(this->build[i].name == this->name)
+				{
+					to_opt = this->build[i];
+				}
+
+				if(from_opt.is_some() && to_opt.is_some())
+				{
+					break;
+				}
+			}
+
+			if(from_opt.is_none() || to_opt.is_none())
+			{
+				throw exception::missing_dependency();
+			}
+
+			build_module const& from = from_opt.unwrap();
+			build_module const& to = to_opt.unwrap();
+
+			if(from.name == to.name)
+			{
+				throw exception::circular_dependency();
+			}
+
+			this->build.dependency_graph.add_edge(from, to);
+
+			return *this;
+		}
+		
+		auto load(module_load load = module_load_cold)
+		{
+			this->state = module_state_load;
+			this->load = load;
+		}
+
+		auto compile()
+		{
+			this->state = module_state_compile;
+		}
+	private:
+		build_system& build;
+
+		string name;
+
+		option<module_type> ty;
+		option<module_state> state;
+		option<module_load> load;
+		option<module_link> link;
+		
+		build_module(string name) :
+			name(name)
+		{
+		}
+
+		friend build_system;
+	}
+
+	class build_system
+	{
+		auto add_module(string name) -> build_module&
+		{
+			this->build_modules.push(build_module(*this, name, ty));
+
+			return this->build_modules[build_modules.length()];
+		}
+
+		auto operator ()()
+		{
+			
+		}
+	private:
+		dependency_graph<build_module> build_modules;
+
+		
+	}
+}
