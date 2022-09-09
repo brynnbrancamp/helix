@@ -1,0 +1,45 @@
+/* vim: set ft=cpp: */
+
+#include <prelude>
+
+namespace helix::fs
+{
+
+	class path
+	{
+	public:
+		path(string name) :
+			name(name)
+		{
+		}
+	private:
+		string name
+	}
+
+	class file_data;
+
+	class file
+	{
+	
+	private:
+		path p;
+		file_data* data;
+
+		file(path p, file_data* data) :
+			p(p),
+			data(data)
+		{
+		}
+
+		friend auto create(path p) -> file;
+		friend auto open(path p) -> file;
+	}
+
+	auto exists(path p) -> bool;
+	
+	auto create(path p) -> file;
+	auto open(path p) -> file;
+	
+	auto remove(path p);
+	auto remove(file&& f);
+}

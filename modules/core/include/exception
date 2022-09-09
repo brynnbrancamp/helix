@@ -30,4 +30,12 @@ namespace helix::exception
 	struct circular_dependency : exception
 	{
 	};
+	
+	struct file_not_found : exception
+	{
+	};
+
+	struct file_exists : exception
+	{
+	};
 }
