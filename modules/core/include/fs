@@ -4,42 +4,95 @@
 
 namespace helix::fs
 {
+	enum path_type 
+	{
+		path_type_invalid,
+		path_type_file,
+		path_type_directory
+	}
 
 	class path
 	{
 	public:
-		path(string name) :
-			name(name)
+		path(string str) :
+			str(str)
 		{
 		}
+
+		auto parent() -> option<path>
+		{
+			option<usize> opt = this->name.find_last("\\\\");
+
+			if(opt.is_none())
+				return option<path>();
+
+			string name = this->name.substr(0, opt.unwrap());
+
+			return path(name);
+		}
+
+		auto name() -> string
+		{
+
+		}
 	private:
-		string name
+		string str
 	}
 
-	class file_data;
+	struct file_info;
 
 	class file
 	{
-	
+	public:
+		friend auto create(path p) -> file;
+		friend auto open(path p) -> file;
 	private:
 		path p;
-		file_data* data;
+		file_info* info;
 
-		file(path p, file_data* data) :
+		file(path p, file_info* info) :
 			p(p),
-			data(data)
+			info(info)
 		{
 		}
 
-		friend auto create(path p) -> file;
-		friend auto open(path p) -> file;
+		~file();
+
+	}
+
+	struct directory_info;
+
+	class directory
+	{
+	public:
+		directory(path p);
+		
+		iterator<path> begin() 
+		{
+			return children.begin();
+		}
+
+		iterator<path> end()
+		{
+			return children.end();
+		}
+
+		friend auto dir(path p) -> directory;
+	private:
+		path p;
+		vec<path> children;
+
 	}
 
 	auto exists(path p) -> bool;
+	
+	auto type(path p) -> path_type;
 	
 	auto create(path p) -> file;
 	auto open(path p) -> file;
 	
 	auto remove(path p);
 	auto remove(file&& f);
+
+	auto current() -> path;
 }

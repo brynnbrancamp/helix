@@ -1,26 +1,58 @@
 /* vim: set ft=cpp: */
 
-class file_data
+#define MAX_PATH 512
+
+#include <fs>
+
+#include <fileapi.h>
+#include <handleapi.h>
+
+struct file_info
 {
 	HANDLE handle;
 }
 
+file::~file()
+{
+	CloseHandle(this->info.handle);
+	delete this->info;
+}
+
 auto exists(path p) -> bool 
 {
-	i8 const* name_ptr = static_cast<i8 const*>(p.name);
+	i8 const* str_ptr = static_cast<i8 const*>(p.str);
 	
-	DWORD dw_attrib = GetFileAttributes(name_ptr);
+	DWORD dw_attrib = GetFileAttributes(str_ptr);
 
 	return (dw_attrib != INVALID_FILE_ATTRIBUTES) && !(dw_attrib & FILE_ATTRIBUTE_DIRECTORY);
 }
 
+auto type(path p) -> path_type
+{
+	i8 const* str_ptr = static_cast<i8 const*>(p.str);
+	
+	DWORD dw_attrib = GetFileAttributes(str_ptr);
+
+	if(dw_attrib == INVALID_FILE_ATTRIBUTES)
+	{
+		return path_type_invalid;
+	}
+
+	if(dw_attrib & FILE_ATTRIBUTE_DIRECTORY)
+	{
+		return path_type_directory;
+	}
+
+	return path_type_file;
+}
+
 auto create(path p) -> file 
 {
-	i8 const* name_ptr = static_cast<i8 const*>(p.name);
+	i8 const* str_ptr = static_cast<i8 const*>(p.str);
 	
 	HANDLE handle = CreateFileA
 	(
-		name_ptr,
+		str_ptr,
 		GENERIC_READ | GENERIC_WRITE,
 		0,
 		0,
@@ -34,20 +66,20 @@ auto create(path p) -> file
 		throw exception::file_exists();
 	}
 
-	file_data* data = new file_data();
+	file_info* info = new file_info;
 
-	data.handle = handle;
+	info.handle = handle;
 
-	return file(p, data);
+	return file(p, info);
 }
 
 auto open(path p) -> file
 {
-	i8 const* name_ptr = static_cast<i8 const*>(p.name);
+	i8 const* str_ptr = static_cast<i8 const*>(p.str);
 	
 	HANDLE handle = CreateFileA
 	(
-		name_ptr,
+		str_ptr,
 		GENERIC_READ | GENERIC_WRITE,
 		0,
 		0,
@@ -61,28 +93,28 @@ auto open(path p) -> file
 		throw exception::file_not_found();
 	}
 
-	file_data* data = new file_data();
+	file_info* info = new file_info;
 
-	data.handle = handle;
+	info.handle = handle;
 
-	return file(p, data);
+	return file(p, info);
 }
 
 auto remove(path p) -> bool
 {
-	i8 const* name_ptr = static_cast<i8 const*>(p.name);
+	i8 const* str_ptr = static_cast<i8 const*>(p.str);
 
-	DWORD dw_attrib = GetFileAttributes(name_ptr);
+	DWORD dw_attrib = GetFileAttributes(str_ptr);
 
 	if(dw_attrib & FILE_ATTRIBUTE_DIRECTORY)
 	{
-		RemoveDirectoryA(name_ptr);
+		RemoveDirectoryA(str_ptr);
 		return true;
 	}
 
 	if(dw_attrib != INVALID_FILE_ATTRIBUTES)
 	{
-		DeleteFileA(name_ptr);
+		DeleteFileA(str_ptr);
 		return true;
 	}
 
@@ -92,4 +124,49 @@ auto remove(path p) -> bool
 auto remove(file&& f) -> bool
 {
 	return remove(f.p);	
+}
+
+struct directory_info
+{
+	vec<path> p;
+}
+
+directory::directory(path p) :
+	p(p),
+	children {}
+{
+	WIN32_FIND_DATA ffd;
+	HANDLE h_find = INVALID_HANDLE_VALUE;
+
+	string_stream str = p.str;
+
+	str <<= "\\*";
+
+	string glob = str;
+
+	i8 const* str = static_cast<i8 const*>(glob);
+		
+	h_find = FindFirstFileA(str, &ffd);
+	
+	if(h_find == INVALID_HANDLE_VALUE)
+	{
+		throw exception::file_not_found();
+	}
+
+	do
+	{
+		string fstr(static_cast<i8 const*>(ffd.cFileName));
+		this->children.push(path(fstr));
+	} while(FindNextFileA(h_find, &ffd) != 0);
+
+	FindClose(h_find);
+}
+
+auto current() -> path
+{
+	i8 buffer[MAX_PATH] {};
+
+	GetModuleFileNameA(0, &buffer, MAX_PATH);
+
+	return path(string(buffer));	
 }

@@ -23,6 +23,74 @@ namespace helix
 		}
 
 		string(const string& other) : string(other.data) {}
+		
+		auto find_last(const string& match) -> option<usize>
+		{
+			for(usize i = this->length(); i-- > 0;)
+			{
+				bool found = true;
+				for
+				(
+					usize j = 0, k = i; 
+					j < match.length() && k < this->length(); 
+					j++, k++
+				)
+				{
+					if((*this)[k] != match[j])
+					{
+						found = false;
+					}
+				}
+
+				if(found)
+				{
+					return option<usize>(i);
+				}
+			}
+
+			return option<usize>();
+		}
+
+		auto find_first(const string& match) -> option<usize>
+		{
+			for(usize i = 0; i < this->length(); i++)
+			{
+				bool found = true;
+				for
+				(
+					usize j = 0, k = i; 
+					j < match.length() && k < this->length(); 
+					j++, k++
+				)
+				{
+					if((*this)[k] != match[j])
+					{
+						found = false;
+					}
+				}
+
+				if(found)
+				{
+					return option<usize>(i);
+				}
+			}
+
+			return option<usize>();
+		}
+
+		auto substr(usize begin, usize end) -> string
+		{
+			usize size = end - begin;
+
+			i8 buffer[size + 1] {};
+
+			for(usize i = 0; i < size; i++)
+			{
+				buffer[i] = (*this)[begin + i];
+			}
+
+			return string(buffer);
+		}
 
 		auto length() const -> usize
 		{

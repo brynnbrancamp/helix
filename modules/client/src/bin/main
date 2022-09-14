@@ -11,41 +11,7 @@ using namespace helix;
 
 i32 main(i32 argc, i8* argv[])
 {
-	const string modules = "modules";
-	const string platform = "platform";
-
-	const string target = "target";
-
-	const string windows = "windows";
-
-	const string core = "core";
-	const string vulkan = "vulkan";
-	const string client = "client";
-
 	build_system build;
-
-	build.add_module_directories(modules, platform);
-
-	build.set_target_directory(target);
-
-	build.add_module(windows)
-		.library()
-		.load();
-
-	build.add_module(core)
-		.library()
-		.dependency(windows)
-		.load();
-
-	build.add_module(vulkan)
-		.library(module_link_dynamic)
-		.dependency(core)
-		.load(module_load_hot);
-
-	build.add_module(client)
-		.target()
-		.dependency(core)
-		.dependency(vulkan);
 
 	window main_window;
 

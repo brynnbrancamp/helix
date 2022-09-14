@@ -1,6 +1,10 @@
 /* vim: set ft=cpp: */
 
+#define BUILD_ROOT "BUILD"
+#define BUILD_ROOT_MAX_DEPTH 3
+
 #include <prelude>
+#include <fs>
 
 namespace helix
 {
@@ -219,6 +223,16 @@ namespace helix
 
 	class build_system
 	{
+		auto add_module_directories(string directory...)
+		{
+			(this->module_directories.push(directory), ...);
+		}
+
+		auto set_target_directory(string directory)
+		{
+			this->target_directory = directory;
+		}
+
 		auto add_module(string name) -> build_module&
 		{
 			this->build_modules.push(build_module(*this, name, ty));
@@ -228,11 +242,47 @@ namespace helix
 
 		auto operator ()()
 		{
-			
+			bool root_found = false;
+			usize i = 0;
+
+			fs::path path = fs::current();					
+			fs::directory directory(path);
+	
+			while(!root_found && i++ < BUILD_ROOT_MAX_DEPTH)
+			{
+				for(auto path : directory)
+				{
+					if(path.name() == BUILD_ROOT)
+					{
+						root_found = true;
+						break;
+					}
+				}	
+
+				option<fs::path> opt = path.parent();
+
+				if(opt.is_none())
+				{
+					break;
+				}
+
+				path = opt.unwrap();
+			}
+
+			if(!root_found)
+			{
+				throw exception::file_not_found();	
+			}
+
+			for(auto directory : this->module_directories)
+			{
+				
+			}
 		}
 	private:
-		dependency_graph<build_module> build_modules;
+		vec<string> module_directories;
+		string target_directory;
 
-		
+		dependency_graph<build_module> build_modules;
 	}
 }

@@ -1,0 +1,49 @@
+/* vim: set ft=cpp: */
+
+#include <prelude>
+
+template<typename data>
+struct iterator
+{
+public:
+	iterator(data* ptr) :
+		ptr(ptr)
+	{
+	}
+
+	data& operator *const()
+	{
+		return *this->ptr;
+	}
+
+	data* operator ->()
+	{
+		return this->ptr;
+	}
+
+	iterator& operator ++()
+	{
+		this->ptr++;
+		return *this;
+	}
+
+	iterator operator ++(int)
+	{
+		iterator temp = *this;
+		++(*this);
+		return temp;
+	}
+
+	friend bool operator ==(const iterator& a, const iterator& b) 
+	{ 
+		return a.ptr == b.ptr; 
+	}
+
+    	friend bool operator !=(const iterator& a, const iterator& b) 
+	{ 
+		return a.ptr != b.ptr; 
+	}
+
+private:
+	data* ptr;
+}

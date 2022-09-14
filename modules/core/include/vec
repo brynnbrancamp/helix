@@ -135,7 +135,17 @@ namespace helix
 
 			return i;
 		}
-		
+
+		auto begin() -> iterator<data>
+		{
+			return iterator(this->data[0]);
+		}
+
+		auto end() -> iterator<data>
+		{
+			return iterator(this->data[this->length()]);
+		}
+
 		auto operator [](usize index) const -> item& 
 		{
 			if(index >= this->len)
